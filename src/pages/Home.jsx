@@ -339,11 +339,10 @@ export default function Home() {
                 <button
                   key={cat}
                   onClick={() => setSelectedGalleryCategory(cat)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                    selectedGalleryCategory === cat
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${selectedGalleryCategory === cat
                       ? 'skeuo-btn-gold'
                       : 'bg-surface-muted text-charcoal-700 border border-surface-border hover:bg-surface-hover'
-                  }`}
+                    }`}
                 >
                   {cat}
                 </button>
@@ -445,9 +444,8 @@ export default function Home() {
                   >
                     <span>{faq.q}</span>
                     <ChevronDown
-                      className={`w-5 h-5 text-gold shrink-0 transition-transform duration-300 ${
-                        isOpen ? 'rotate-180' : ''
-                      }`}
+                      className={`w-5 h-5 text-gold shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''
+                        }`}
                     />
                   </button>
                   {isOpen && (

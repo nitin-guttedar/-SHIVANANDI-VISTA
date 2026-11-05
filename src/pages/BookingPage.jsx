@@ -126,7 +126,7 @@ export default function BookingPage() {
       {/* Main Reservation Container */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* Left Column: Form */}
           <div className="lg:col-span-8">
             {submittedEnquiry ? (

@@ -65,11 +65,10 @@ export default function BlogPage() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                selectedCategory === cat
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${selectedCategory === cat
                   ? 'skeuo-btn-gold'
                   : 'bg-surface-muted text-charcoal-700 border border-surface-border hover:bg-surface-hover'
-              }`}
+                }`}
             >
               {cat}
             </button>
@@ -79,7 +78,7 @@ export default function BlogPage() {
 
       {/* Main Magazine Layout */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
-        
+
         {/* Featured Editorial Banner (When 'All' is active) */}
         {selectedCategory === 'All' && featuredPost && (
           <div className="skeuo-plate overflow-hidden border border-gold/30 shadow-skeuo-elevated group">

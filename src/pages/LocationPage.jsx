@@ -85,7 +85,7 @@ export default function LocationPage() {
       {/* Address & Google Maps Embed Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* Address Details Plate */}
           <div className="lg:col-span-5 skeuo-plate p-6 sm:p-8 space-y-6">
             <div className="flex items-center gap-3 border-b border-surface-border pb-4">

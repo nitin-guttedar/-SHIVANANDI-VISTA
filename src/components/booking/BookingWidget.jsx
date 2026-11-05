@@ -209,3 +209,4 @@ export default function BookingWidget({ variant = 'horizontal' }) {
     </div>
   );
 }
+

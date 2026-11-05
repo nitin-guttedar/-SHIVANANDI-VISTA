@@ -204,11 +204,10 @@ export default function AdminPage() {
           <nav className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
             <button
               onClick={() => setActiveTab('bookings')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition ${
-                activeTab === 'bookings'
+              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition ${activeTab === 'bookings'
                   ? 'skeuo-btn-gold'
                   : 'bg-surface-muted text-charcoal-700 hover:bg-surface-hover'
-              }`}
+                }`}
             >
               <Calendar className="w-3.5 h-3.5" />
               <span>Bookings ({bookingEnquiries.length})</span>
@@ -216,11 +215,10 @@ export default function AdminPage() {
 
             <button
               onClick={() => setActiveTab('contacts')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition ${
-                activeTab === 'contacts'
+              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition ${activeTab === 'contacts'
                   ? 'skeuo-btn-gold'
                   : 'bg-surface-muted text-charcoal-700 hover:bg-surface-hover'
-              }`}
+                }`}
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Contact Messages ({contactEnquiries.length})</span>
@@ -228,11 +226,10 @@ export default function AdminPage() {
 
             <button
               onClick={() => setActiveTab('rooms')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition ${
-                activeTab === 'rooms'
+              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition ${activeTab === 'rooms'
                   ? 'skeuo-btn-gold'
                   : 'bg-surface-muted text-charcoal-700 hover:bg-surface-hover'
-              }`}
+                }`}
             >
               <Hotel className="w-3.5 h-3.5" />
               <span>Manage Rooms ({rooms.length})</span>
@@ -240,11 +237,10 @@ export default function AdminPage() {
 
             <button
               onClick={() => setActiveTab('blogs')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition ${
-                activeTab === 'blogs'
+              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition ${activeTab === 'blogs'
                   ? 'skeuo-btn-gold'
                   : 'bg-surface-muted text-charcoal-700 hover:bg-surface-hover'
-              }`}
+                }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
               <span>Travel Blog ({blogPosts.length})</span>
@@ -260,7 +256,7 @@ export default function AdminPage() {
 
       {/* Main Tab Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        
+
         {/* TAB 1: BOOKING ENQUIRIES */}
         {activeTab === 'bookings' && (
           <div className="space-y-6">
@@ -280,11 +276,10 @@ export default function AdminPage() {
                   <button
                     key={st}
                     onClick={() => setBookingFilter(st)}
-                    className={`px-3 py-1.5 rounded-lg font-bold transition ${
-                      bookingFilter === st
+                    className={`px-3 py-1.5 rounded-lg font-bold transition ${bookingFilter === st
                         ? 'bg-charcoal text-white'
                         : 'bg-surface-muted text-charcoal-600 hover:bg-surface-hover'
-                    }`}
+                      }`}
                   >
                     {st}
                   </button>
@@ -311,12 +306,11 @@ export default function AdminPage() {
                         <h3 className="font-serif font-bold text-lg text-charcoal">
                           {enq.fullName}
                         </h3>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          enq.status === 'New' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
-                          enq.status === 'Confirmed' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
-                          enq.status === 'Contacted' ? 'bg-sky-100 text-sky-800 border border-sky-300' :
-                          'bg-zinc-100 text-zinc-600'
-                        }`}>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${enq.status === 'New' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+                            enq.status === 'Confirmed' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                              enq.status === 'Contacted' ? 'bg-sky-100 text-sky-800 border border-sky-300' :
+                                'bg-zinc-100 text-zinc-600'
+                          }`}>
                           {enq.status}
                         </span>
                       </div>

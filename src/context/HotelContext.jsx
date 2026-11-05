@@ -225,3 +225,4 @@ export const useHotel = () => {
   if (!context) throw new Error('useHotel must be used within HotelProvider');
   return context;
 };
+
