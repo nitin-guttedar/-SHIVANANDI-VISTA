@@ -3,9 +3,171 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --bg-alabaster: #FAF8F5;
+    --text-charcoal: #1C1917;
+    --gold-primary: #B48C36;
+    --gold-light: #D4AF37;
+  }
+
   body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #FAF8F5;
+    color: #1C1917;
+    font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, .font-luxury {
+    font-family: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
   }
 }
 
+/* Luxury Skeuomorphic Components */
+.skeuo-plate {
+  background: linear-gradient(180deg, #FFFFFF 0%, #FAF8F4 100%);
+  border: 1px solid #E6E0D3;
+  box-shadow: 
+    0 10px 25px -4px rgba(28, 25, 23, 0.06),
+    0 4px 8px -2px rgba(28, 25, 23, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  border-radius: 1rem;
+}
+
+.skeuo-plate-gold {
+  background: linear-gradient(180deg, #FFFFFF 0%, #FDFBF6 100%);
+  border: 1px solid rgba(180, 140, 54, 0.35);
+  box-shadow: 
+    0 12px 30px -5px rgba(180, 140, 54, 0.12),
+    0 4px 10px -2px rgba(28, 25, 23, 0.04),
+    inset 0 1px 1px rgba(255, 255, 255, 1);
+  border-radius: 1rem;
+}
+
+.skeuo-inset {
+  background: #F3EFE7;
+  border: 1px solid #E1DBD0;
+  box-shadow: 
+    inset 0 2px 5px rgba(28, 25, 23, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.9);
+  border-radius: 0.75rem;
+}
+
+.skeuo-input {
+  background: #FBF9F5;
+  border: 1px solid #DCD5C8;
+  box-shadow: 
+    inset 0 2px 4px rgba(28, 25, 23, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.85);
+  transition: all 0.2s ease;
+}
+
+.skeuo-input:focus {
+  background: #FFFFFF;
+  border-color: #B48C36;
+  box-shadow: 
+    inset 0 2px 4px rgba(180, 140, 54, 0.1),
+    0 0 0 3px rgba(180, 140, 54, 0.18),
+    0 1px 0 rgba(255, 255, 255, 0.9);
+  outline: none;
+}
+
+.skeuo-btn-gold {
+  background: linear-gradient(180deg, #F3D27E 0%, #D4AF37 30%, #B48C36 75%, #967324 100%);
+  color: #1C1917;
+  font-weight: 600;
+  border: 1px solid #A27B27;
+  border-top-color: #FFE69B;
+  border-bottom-color: #6C5216;
+  box-shadow: 
+    0 4px 14px rgba(180, 140, 54, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.15),
+    inset 0 1px 1px rgba(255, 255, 255, 0.65),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.2);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.skeuo-btn-gold:hover {
+  background: linear-gradient(180deg, #F9DD92 0%, #E0BD4E 30%, #BF973E 75%, #A17D29 100%);
+  box-shadow: 
+    0 6px 18px rgba(180, 140, 54, 0.45),
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    inset 0 1px 1px rgba(255, 255, 255, 0.8),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.skeuo-btn-gold:active {
+  background: linear-gradient(180deg, #B48C36 0%, #967324 100%);
+  box-shadow: 
+    inset 0 3px 6px rgba(0, 0, 0, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+  transform: translateY(1px);
+}
+
+.skeuo-btn-dark {
+  background: linear-gradient(180deg, #38322D 0%, #26211D 60%, #1A1714 100%);
+  color: #FDF9EE;
+  font-weight: 600;
+  border: 1px solid #141210;
+  border-top-color: #554D45;
+  border-bottom-color: #0B0A09;
+  box-shadow: 
+    0 4px 12px rgba(28, 25, 23, 0.3),
+    inset 0 1px 1px rgba(255, 255, 255, 0.18),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.4);
+  transition: all 0.15s ease;
+}
+
+.skeuo-btn-dark:hover {
+  background: linear-gradient(180deg, #443D37 0%, #2F2A25 60%, #201D19 100%);
+  box-shadow: 
+    0 6px 16px rgba(28, 25, 23, 0.4),
+    inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.skeuo-btn-dark:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+.skeuo-badge {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F5F1E8 100%);
+  border: 1px solid #DECBB1;
+  box-shadow: 
+    0 2px 4px rgba(28, 25, 23, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.gold-foil-text {
+  background: linear-gradient(135deg, #A8812C 0%, #CFA94E 30%, #E8C974 50%, #C49F47 70%, #8C671C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Minimal Luxury Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FAF8F5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D8D2C5;
+  border-radius: 9999px;
+  border: 1px solid #FAF8F5;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B48C36;
+}
+
+/* Smooth page transitions */
+html {
+  scroll-behavior: smooth;
+}

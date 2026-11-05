@@ -1,4 +1,4 @@
-# -SHIVANANDI-VISTA
+# SHIVANANDI-VISTA
 
 A modern React application built with [Vite](https://vitejs.dev/) and styled with [Tailwind CSS](https://tailwindcss.com/).
 
