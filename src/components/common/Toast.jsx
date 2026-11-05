@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
 import { useHotel } from '../../context/HotelContext';
 
 export default function Toast() {
@@ -12,8 +12,8 @@ export default function Toast() {
   return (
     <div className="fixed top-24 right-5 z-50 max-w-sm w-full animate-fadeIn">
       <div
-        className={`skeuo-plate p-4 flex items-start gap-3 border shadow-skeuo-elevated ${
-          isSuccess ? 'border-emerald-300 bg-[#F4FBF7]' : 'border-rose-300 bg-[#FFF5F5]'
+        className={`bg-white p-4 rounded-xl flex items-start gap-3 border shadow-minimal-lg ${
+          isSuccess ? 'border-emerald-300 text-emerald-950' : 'border-rose-300 text-rose-950'
         }`}
       >
         {isSuccess ? (
@@ -22,11 +22,10 @@ export default function Toast() {
           <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
         )}
 
-        <div className="flex-1 text-xs text-charcoal font-medium leading-relaxed">
+        <div className="flex-1 text-xs font-medium leading-relaxed">
           {toast.message}
         </div>
       </div>
     </div>
   );
 }
-

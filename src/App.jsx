@@ -23,7 +23,7 @@ export default function App() {
   return (
     <HotelProvider>
       <HashRouter>
-        <div className="flex flex-col min-h-screen bg-alabaster text-charcoal font-sans antialiased selection:bg-gold/20 selection:text-gold-dark">
+        <div className="flex flex-col min-h-screen bg-cream-100 text-obsidian font-sans antialiased selection:bg-gold/20 selection:text-gold-dark">
           <Navbar />
           <Toast />
           <main className="flex-1">
