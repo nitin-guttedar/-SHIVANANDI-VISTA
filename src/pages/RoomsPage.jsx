@@ -78,11 +78,10 @@ export default function RoomsPage() {
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${
-                  selectedCategory === cat
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${selectedCategory === cat
                     ? 'bg-obsidian text-white'
                     : 'bg-stone-warm text-obsidian-700 border border-stone-200 hover:bg-stone-200/60'
-                }`}
+                  }`}
               >
                 {cat}
               </button>
@@ -102,7 +101,7 @@ export default function RoomsPage() {
               className="minimal-card overflow-hidden"
             >
               <div className={`grid grid-cols-1 lg:grid-cols-12 gap-0 items-stretch ${isReversed ? 'lg:flex-row-reverse' : ''}`}>
-                
+
                 {/* Images Column */}
                 <div className={`lg:col-span-5 relative bg-stone-100 ${isReversed ? 'lg:order-2' : ''}`}>
                   <img

@@ -199,11 +199,10 @@ export default function AdminPage() {
           <nav className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
             <button
               onClick={() => setActiveTab('bookings')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
-                activeTab === 'bookings'
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${activeTab === 'bookings'
                   ? 'bg-obsidian text-white'
                   : 'bg-stone-warm text-obsidian-700 hover:bg-stone-200/60'
-              }`}
+                }`}
             >
               <Calendar className="w-3.5 h-3.5" />
               <span>Bookings ({bookingEnquiries.length})</span>
@@ -211,11 +210,10 @@ export default function AdminPage() {
 
             <button
               onClick={() => setActiveTab('contacts')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
-                activeTab === 'contacts'
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${activeTab === 'contacts'
                   ? 'bg-obsidian text-white'
                   : 'bg-stone-warm text-obsidian-700 hover:bg-stone-200/60'
-              }`}
+                }`}
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Messages ({contactEnquiries.length})</span>
@@ -223,11 +221,10 @@ export default function AdminPage() {
 
             <button
               onClick={() => setActiveTab('rooms')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
-                activeTab === 'rooms'
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${activeTab === 'rooms'
                   ? 'bg-obsidian text-white'
                   : 'bg-stone-warm text-obsidian-700 hover:bg-stone-200/60'
-              }`}
+                }`}
             >
               <Hotel className="w-3.5 h-3.5" />
               <span>Rooms ({rooms.length})</span>
@@ -235,11 +232,10 @@ export default function AdminPage() {
 
             <button
               onClick={() => setActiveTab('blogs')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
-                activeTab === 'blogs'
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${activeTab === 'blogs'
                   ? 'bg-obsidian text-white'
                   : 'bg-stone-warm text-obsidian-700 hover:bg-stone-200/60'
-              }`}
+                }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
               <span>Travel Blog ({blogPosts.length})</span>
@@ -255,7 +251,7 @@ export default function AdminPage() {
 
       {/* Main Tab Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         {/* TAB 1: BOOKING ENQUIRIES */}
         {activeTab === 'bookings' && (
           <div className="space-y-5">
@@ -275,11 +271,10 @@ export default function AdminPage() {
                   <button
                     key={st}
                     onClick={() => setBookingFilter(st)}
-                    className={`px-2.5 py-1 rounded-md font-medium transition ${
-                      bookingFilter === st
+                    className={`px-2.5 py-1 rounded-md font-medium transition ${bookingFilter === st
                         ? 'bg-obsidian text-white'
                         : 'bg-white border border-stone-200 text-obsidian-600 hover:bg-stone-warm'
-                    }`}
+                      }`}
                   >
                     {st}
                   </button>
@@ -306,12 +301,11 @@ export default function AdminPage() {
                         <h3 className="font-serif font-bold text-base text-obsidian">
                           {enq.fullName}
                         </h3>
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                          enq.status === 'New' ? 'bg-amber-50 text-amber-800 border border-amber-200' :
-                          enq.status === 'Confirmed' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' :
-                          enq.status === 'Contacted' ? 'bg-sky-50 text-sky-800 border border-sky-200' :
-                          'bg-zinc-100 text-zinc-600'
-                        }`}>
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${enq.status === 'New' ? 'bg-amber-50 text-amber-800 border border-amber-200' :
+                            enq.status === 'Confirmed' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' :
+                              enq.status === 'Contacted' ? 'bg-sky-50 text-sky-800 border border-sky-200' :
+                                'bg-zinc-100 text-zinc-600'
+                          }`}>
                           {enq.status}
                         </span>
                       </div>

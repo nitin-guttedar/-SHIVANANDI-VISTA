@@ -64,11 +64,10 @@ export default function BlogPage() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${
-                selectedCategory === cat
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${selectedCategory === cat
                   ? 'bg-obsidian text-white'
                   : 'bg-stone-warm text-obsidian-600 border border-stone-200 hover:bg-stone-200/60'
-              }`}
+                }`}
             >
               {cat}
             </button>
@@ -78,7 +77,7 @@ export default function BlogPage() {
 
       {/* Main Magazine Layout */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
-        
+
         {/* Featured Editorial Banner */}
         {selectedCategory === 'All' && featuredPost && (
           <div className="minimal-card overflow-hidden group">

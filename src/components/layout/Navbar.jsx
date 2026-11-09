@@ -78,15 +78,14 @@ export default function Navbar() {
 
       {/* Main Minimalist Header */}
       <div
-        className={`transition-all duration-300 ${
-          isScrolled
+        className={`transition-all duration-300 ${isScrolled
             ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-stone-200'
             : 'bg-white border-b border-stone-200/80'
-        }`}
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
-            
+
             {/* Minimal Logo with the Real Business Logo Image */}
             <Link to="/" className="flex items-center gap-3.5 group">
               <img
@@ -110,11 +109,10 @@ export default function Navbar() {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    isActive(link.path)
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${isActive(link.path)
                       ? 'text-gold-dark font-semibold bg-gold-pale'
                       : 'text-obsidian-700 hover:text-obsidian hover:bg-stone-warm'
-                  }`}
+                    }`}
                 >
                   {link.name}
                 </Link>
@@ -167,11 +165,10 @@ export default function Navbar() {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`block px-4 py-2.5 rounded-xl text-sm font-medium transition ${
-                    isActive(link.path)
+                  className={`block px-4 py-2.5 rounded-xl text-sm font-medium transition ${isActive(link.path)
                       ? 'bg-gold-pale text-gold-dark font-semibold'
                       : 'text-obsidian-700 hover:bg-stone-warm'
-                  }`}
+                    }`}
                 >
                   {link.name}
                 </Link>

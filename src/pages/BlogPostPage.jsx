@@ -44,7 +44,7 @@ export default function BlogPostPage() {
       navigator.share({
         title: post.title,
         url: window.location.href
-      }).catch(() => {});
+      }).catch(() => { });
     } else {
       navigator.clipboard.writeText(window.location.href);
       alert('Article link copied to clipboard!');
@@ -84,7 +84,7 @@ export default function BlogPostPage() {
 
       {/* Main Article Container */}
       <article className="py-12 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto space-y-8">
-        
+
         {/* Title & Metadata */}
         <div className="space-y-3">
           <span className="minimal-badge inline-block">
