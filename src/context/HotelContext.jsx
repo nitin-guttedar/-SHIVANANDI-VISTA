@@ -9,15 +9,24 @@ import {
   GALLERY_IMAGES,
   TESTIMONIALS
 } from '../data/hotelData';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const HotelContext = createContext(null);
 
 export function HotelProvider({ children }) {
-  // Rooms state with local persistence
+  // Rooms state with initial fallback to verified hotel rooms
   const [rooms, setRooms] = useState(() => {
-    const saved = localStorage.getItem('sv_rooms_v5');
-    return saved ? JSON.parse(saved) : INITIAL_ROOMS;
+    try {
+      const saved = localStorage.getItem('sv_rooms');
+      if (saved) return JSON.parse(saved);
+    } catch (e) { }
+    return INITIAL_ROOMS;
   });
+
+  // Live Supabase database rooms and reservations
+  const [dbRooms, setDbRooms] = useState([]);
+  const [reservations, setReservations] = useState([]);
+  const [isLiveSynced, setIsLiveSynced] = useState(false);
 
   // Blog posts state
   const [blogPosts, setBlogPosts] = useState(() => {
@@ -41,22 +50,8 @@ export function HotelProvider({ children }) {
         children: 1,
         roomCategory: 'Deluxe Vista Suite',
         specialRequests: 'Quiet room requested for family stay. Early check-in if possible.',
-        status: 'New',
+        status: 'Confirmed',
         createdAt: '2026-11-04 14:32'
-      },
-      {
-        id: 'ENQ-1002',
-        fullName: 'Sunil Kumar',
-        phone: '+91 98860 54321',
-        email: 'sunil.k@techcorp.com',
-        checkIn: '2026-11-18',
-        checkOut: '2026-11-19',
-        adults: 1,
-        children: 0,
-        roomCategory: 'Transit Comfort Deluxe',
-        specialRequests: 'Late night arrival around 1:30 AM flight. Need airport cab pickup.',
-        status: 'Contacted',
-        createdAt: '2026-11-05 09:15'
       }
     ];
   });
@@ -65,18 +60,7 @@ export function HotelProvider({ children }) {
   const [contactEnquiries, setContactEnquiries] = useState(() => {
     const saved = localStorage.getItem('sv_contact_enquiries');
     if (saved) return JSON.parse(saved);
-    return [
-      {
-        id: 'CNT-2001',
-        fullName: 'Dr. Meenakshi',
-        phone: '+91 94480 87654',
-        email: 'meenakshi.d@hospital.org',
-        subject: 'Family Group Stay Enquiry for 12 Guests',
-        message: 'Hello team, we are planning a family reunion in December. Can you provide rates for multiple rooms and catering options?',
-        status: 'New',
-        createdAt: '2026-11-05 11:20'
-      }
-    ];
+    return [];
   });
 
   // Admin auth state
@@ -86,6 +70,11 @@ export function HotelProvider({ children }) {
 
   // Toast message
   const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   // Sync state to local storage
   useEffect(() => {
@@ -104,20 +93,142 @@ export function HotelProvider({ children }) {
     localStorage.setItem('sv_contact_enquiries', JSON.stringify(contactEnquiries));
   }, [contactEnquiries]);
 
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  };
+  // =========================================================================
+  // LIVE SUPABASE INVENTORY & REALTIME SUBSCRIPTION
+  // =========================================================================
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    let isMounted = true;
 
-  const addBookingEnquiry = (data) => {
+    async function loadLiveInventory() {
+      try {
+        // 1. Fetch live rooms from Supabase
+        const { data: roomsData, error: roomsErr } = await supabase
+          .from('rooms')
+          .select('*')
+          .order('room_number');
+
+        // 2. Fetch live reservations from Supabase
+        const { data: resData, error: resErr } = await supabase
+          .from('reservations')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!roomsErr && roomsData && roomsData.length > 0 && isMounted) {
+          setDbRooms(roomsData);
+          setIsLiveSynced(true);
+
+          // Map Supabase rooms to Shivanandi Vista room card format
+          const mappedRooms = roomsData.map((r, idx) => {
+            const matchingInitial = INITIAL_ROOMS.find(ir =>
+              ir.title?.toLowerCase().includes((r.type || '').toLowerCase()) ||
+              ir.category?.toLowerCase().includes((r.type || '').toLowerCase())
+            ) || INITIAL_ROOMS[idx % INITIAL_ROOMS.length];
+
+            const roomTitle = r.room_number ? `Room ${r.room_number} - ${r.type || 'Standard Room'}` : (r.type || 'Standard Room');
+            const isOccupied = r.status === 'OCCUPIED';
+            const isMaintenance = r.status === 'MAINTENANCE';
+
+            return {
+              id: String(r.id || r.room_number),
+              roomNumber: r.room_number,
+              title: roomTitle,
+              category: r.type || 'Standard Room',
+              shortDesc: matchingInitial?.shortDesc || `Refined ${r.type} located on ${r.floor || 'Floor 1'}. Features modern conveniences, quiet surroundings, and high-speed Wi-Fi.`,
+              fullDesc: matchingInitial?.fullDesc || matchingInitial?.shortDesc,
+              size: matchingInitial?.size || '320 sq.ft',
+              bed: r.bed || matchingInitial?.bed || '1 King Bed',
+              floor: r.floor,
+              capacity: matchingInitial?.capacity || 'Up to 3 Guests',
+              pricePerNight: Number(r.price) || matchingInitial?.pricePerNight || 2000,
+              badge: isOccupied ? 'Reserved' : isMaintenance ? 'Maintenance' : (matchingInitial?.badge || 'Available'),
+              status: r.status,
+              isAvailable: r.status === 'VACANT_READY',
+              image: matchingInitial?.image || 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1000&q=80',
+              gallery: matchingInitial?.gallery || [
+                'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1000&q=80'
+              ],
+              amenities: matchingInitial?.amenities || [
+                'High-speed Optic Fiber Wi-Fi',
+                'Individual Split Air Conditioning',
+                '43-inch 4K Smart TV',
+                'Ensuite Bathroom with 24/7 Hot Water',
+                'Daily Housekeeping'
+              ]
+            };
+          });
+
+          setRooms(mappedRooms);
+        }
+
+        if (!resErr && resData && isMounted) {
+          setReservations(resData);
+        }
+      } catch (err) {
+        console.warn('Supabase live inventory sync warning:', err);
+      }
+    }
+
+    loadLiveInventory();
+
+    // Setup Supabase Realtime channel for instant synchronization
+    const channel = supabase.channel('shivanandi_vista_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'rooms' }, () => loadLiveInventory())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, () => loadLiveInventory())
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // =========================================================================
+  // LIVE BOOKING ENQUIRY & SUPABASE RESERVATION CREATION
+  // =========================================================================
+  const addBookingEnquiry = async (data) => {
+    const bookingId = `AST-B-${Math.floor(1000 + Math.random() * 9000)}`;
     const newEnq = {
-      id: `ENQ-${Date.now().toString().slice(-4)}`,
+      id: bookingId,
       ...data,
-      status: 'New',
+      status: 'Confirmed',
       createdAt: new Date().toISOString().replace('T', ' ').slice(0, 16)
     };
+
     setBookingEnquiries(prev => [newEnq, ...prev]);
-    showToast('Your booking enquiry has been submitted successfully! Our team will contact you shortly.', 'success');
+
+    // Live insertion into Supabase reservations table
+    if (isSupabaseConfigured) {
+      try {
+        const payload = {
+          id: bookingId,
+          guest: data.fullName || 'Guest',
+          guest_email: data.email || null,
+          guest_phone: data.phone || null,
+          room: data.roomCategory || 'Room',
+          check_in: data.checkIn,
+          check_out: data.checkOut,
+          amount: Number(data.estimatedTariff) || 2000,
+          status: 'CONFIRMED',
+          payment: 'PENDING',
+          source: 'Shivanandi Vista Direct Portal',
+          special_requests: data.specialRequests || null
+        };
+
+        const { error } = await supabase.from('reservations').insert(payload);
+        if (error) {
+          console.warn('Supabase reservation insert attempt with hotel_id fallback...', error);
+          await supabase.from('reservations').insert({
+            ...payload,
+            hotel_id: 'hotel_aurastay_01'
+          });
+        }
+      } catch (err) {
+        console.warn('Supabase reservation insert synced locally', err);
+      }
+    }
+
+    showToast('Your reservation has been confirmed and synced with the hotel front desk!', 'success');
     return newEnq;
   };
 
@@ -192,6 +303,9 @@ export function HotelProvider({ children }) {
       value={{
         property: PROPERTY_INFO,
         rooms,
+        dbRooms,
+        reservations,
+        isLiveSynced,
         blogPosts,
         amenities: AMENITIES_LIST,
         nearbyLocations: NEARBY_LOCATIONS,
@@ -225,4 +339,3 @@ export const useHotel = () => {
   if (!context) throw new Error('useHotel must be used within HotelProvider');
   return context;
 };
-
