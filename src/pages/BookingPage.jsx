@@ -14,10 +14,11 @@ import {
   FileText,
   User,
   ShieldCheck,
-  UserCheck
+  Check
 } from 'lucide-react';
 import SEO from '../components/common/SEO';
 import { useHotel } from '../context/HotelContext';
+import { validateIndianMobile } from '../lib/phoneValidation';
 
 export default function BookingPage() {
   const [searchParams] = useSearchParams();
@@ -27,7 +28,6 @@ export default function BookingPage() {
     addBookingEnquiry, 
     openWhatsApp, 
     user, 
-    loginAsGuest,
     setIsAuthModalOpen, 
     checkRoomConflict, 
     showToast 
@@ -42,17 +42,18 @@ export default function BookingPage() {
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
   const [formData, setFormData] = useState({
-    fullName: user ? (user.isGuest ? `Guest ${user.guestId}` : user.name || '') : '',
+    fullName: user?.name || '',
     phone: user?.phone || '',
     email: user?.email || '',
     checkIn: paramCheckIn || today,
     checkOut: paramCheckOut || tomorrow,
     adults: paramAdults || '2',
     children: '0',
-    roomCategory: paramRoom || rooms[0]?.title || 'Deluxe Vista Suite',
+    roomCategory: paramRoom || rooms[0]?.title || 'Standard Room',
     specialRequests: ''
   });
 
+  const [phoneError, setPhoneError] = useState('');
   const [submittedEnquiry, setSubmittedEnquiry] = useState(null);
 
   // Sync user info into form if logged in
@@ -60,10 +61,11 @@ export default function BookingPage() {
     if (user) {
       setFormData(prev => ({
         ...prev,
-        fullName: prev.fullName || (user.isGuest ? `Guest ${user.guestId}` : user.name || ''),
+        fullName: prev.fullName || user.name || '',
         phone: prev.phone || user.phone || '',
         email: prev.email || user.email || ''
       }));
+      setPhoneError('');
     }
   }, [user]);
 
@@ -83,7 +85,7 @@ export default function BookingPage() {
 
   const selectedRoomObj = rooms.find(r => r.title === formData.roomCategory) || rooms[0];
   const totalNights = calculateNights();
-  const estimatedTotal = (selectedRoomObj?.pricePerNight || 3000) * totalNights;
+  const estimatedTotal = (selectedRoomObj?.pricePerNight || 2000) * totalNights;
 
   // Real-time Date Conflict Validation
   const dateConflict = checkRoomConflict(
@@ -94,13 +96,41 @@ export default function BookingPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'phone') {
+      const clean = value.replace(/\D/g, '').slice(0, 10);
+      setFormData(prev => ({ ...prev, phone: clean }));
+
+      if (clean.length > 0) {
+        const val = validateIndianMobile(clean);
+        if (!val.isValid && clean.length === 10) {
+          setPhoneError(val.error);
+        } else if (clean.length > 0 && !/^[6-9]/.test(clean[0])) {
+          setPhoneError(`Indian mobile numbers must start with 6, 7, 8, or 9 (starts with "${clean[0]}").`);
+        } else {
+          setPhoneError('');
+        }
+      } else {
+        setPhoneError('');
+      }
+      return;
+    }
+
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Prevent submission if date conflict exists
+    // Strict Phone Validation
+    const phoneVal = validateIndianMobile(formData.phone);
+    if (!phoneVal.isValid) {
+      setPhoneError(phoneVal.error);
+      showToast(phoneVal.error, 'error');
+      return;
+    }
+
+    // Date Overlap Validation
     if (dateConflict) {
       showToast('Selected room is already booked for these dates. Please choose other dates or another room.', 'error');
       return;
@@ -111,29 +141,16 @@ export default function BookingPage() {
       return;
     }
 
-    // If user is not logged in, prompt auth or guest login
-    if (!user) {
+    // If user is not logged in or phone differs, require real OTP verification
+    if (!user || user.phone !== phoneVal.cleanNumber) {
+      showToast('Mobile verification required. Please verify with OTP to complete booking.', 'info');
       setIsAuthModalOpen(true);
       return;
     }
 
     const enquiry = await addBookingEnquiry({
       ...formData,
-      nights: totalNights,
-      estimatedTariff: estimatedTotal
-    });
-    setSubmittedEnquiry(enquiry);
-  };
-
-  const handleQuickGuestSubmit = async () => {
-    if (dateConflict) {
-      showToast('Selected room is already booked for these dates.', 'error');
-      return;
-    }
-    const guest = loginAsGuest();
-    const enquiry = await addBookingEnquiry({
-      ...formData,
-      fullName: formData.fullName || `Guest ${guest.guestId}`,
+      phone: phoneVal.cleanNumber,
       nights: totalNights,
       estimatedTariff: estimatedTotal
     });
@@ -144,6 +161,8 @@ export default function BookingPage() {
     const text = `Hello SHIVANANDI VISTA,\n\nI would like to enquire about room availability and booking.\n\nName: ${formData.fullName || 'Guest'}\nDates: ${formData.checkIn} to ${formData.checkOut} (${totalNights} Night(s))\nRoom: ${formData.roomCategory}\nGuests: ${formData.adults} Adults, ${formData.children} Children\n${formData.specialRequests ? `Special Requests: ${formData.specialRequests}\n` : ''}\nPlease share availability and tariff details.\nThank you.`;
     openWhatsApp(text);
   };
+
+  const isPhoneVerified = user && user.phone === formData.phone && formData.phone.length === 10;
 
   return (
     <>
@@ -195,25 +214,23 @@ export default function BookingPage() {
                     <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-3 py-0.5 rounded-full border border-emerald-200">
                       Booking Reference: {submittedEnquiry.id}
                     </span>
-                    {submittedEnquiry.guestId && (
-                      <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
-                        Guest: {submittedEnquiry.guestId}
-                      </span>
-                    )}
+                    <span className="text-xs font-bold text-sky-800 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">
+                      Verified Phone: +91 {submittedEnquiry.phone}
+                    </span>
                   </div>
                   <h2 className="font-serif text-2xl sm:text-3xl font-bold text-obsidian">
                     Reservation Confirmed & Synced
                   </h2>
                   <p className="text-xs sm:text-sm text-obsidian-600 max-w-md mx-auto leading-relaxed">
-                    Thank you, <strong>{submittedEnquiry.fullName}</strong>. Your reservation for <strong>{submittedEnquiry.roomCategory}</strong> ({submittedEnquiry.checkIn} to {submittedEnquiry.checkOut}) has been dispatched to the front desk PMS.
+                    Thank you, <strong>{submittedEnquiry.fullName}</strong>. Your reservation for <strong>{submittedEnquiry.roomCategory}</strong> ({submittedEnquiry.checkIn} to {submittedEnquiry.checkOut}) has been confirmed and synced to the front desk PMS.
                   </p>
                 </div>
 
                 {/* Verification Notice */}
-                <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 leading-relaxed flex items-start gap-2.5">
-                  <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                <div className="p-4 rounded-xl bg-emerald-50/80 border border-emerald-200 text-xs text-emerald-950 leading-relaxed flex items-start gap-2.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
                   <div>
-                    <strong>Front Desk Sync Confirmation:</strong> Your booking is logged in the live hotel PMS. You may track your booking status anytime under <strong>"My Bookings"</strong> in the top navigation using your phone number or Guest ID.
+                    <strong>Verified Booking Confirmed:</strong> Your stay details are logged in the live hotel database. You can review your booking status anytime in <strong>"My Bookings"</strong> using your verified mobile number <strong>+91 {submittedEnquiry.phone}</strong>.
                   </div>
                 </div>
 
@@ -230,7 +247,7 @@ export default function BookingPage() {
                     onClick={() => setSubmittedEnquiry(null)}
                     className="minimal-btn-outline px-5 py-2.5 text-xs sm:text-sm font-semibold"
                   >
-                    Submit Another Enquiry
+                    Book Another Room
                   </button>
                 </div>
               </div>
@@ -241,74 +258,39 @@ export default function BookingPage() {
                     Direct Room Reservation Form
                   </h2>
                   <p className="text-xs text-obsidian-500 mt-1">
-                    Select your travel dates and preferred room. Live inventory updates in real-time.
+                    Select your travel dates and preferred room. Enter your genuine mobile number to receive verification OTP.
                   </p>
                 </div>
 
-                {/* User Session Banner / Fast-Track Login Bar */}
-                <div className="p-4 rounded-2xl border bg-stone-50/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                  {user ? (
+                {/* Verified Account Status Strip */}
+                {user && (
+                  <div className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200 flex items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-gold/20 text-gold-dark flex items-center justify-center font-bold text-xs shrink-0">
-                        {user.isGuest ? 'G' : (user.name?.[0] || 'U')}
+                      <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">
+                        <Check className="w-4 h-4" />
                       </div>
                       <div>
-                        <div className="font-bold text-obsidian flex items-center gap-1.5">
+                        <div className="font-bold text-emerald-900 flex items-center gap-1.5">
                           <span>{user.name}</span>
-                          <span className="text-[10px] text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded-full">
-                            {user.isGuest ? `Guest: ${user.guestId}` : 'Verified Account'}
+                          <span className="text-[10px] bg-emerald-200/80 text-emerald-800 font-bold px-2 py-0.2 rounded-full">
+                            Verified Mobile
                           </span>
                         </div>
-                        <div className="text-[11px] text-stone-500">
-                          {user.phone ? `Mobile: +91 ${user.phone}` : 'Guest session active'} &bull; Details auto-filled
+                        <div className="text-[11px] text-emerald-700 font-mono">
+                          +91 {user.phone} &bull; Ready for instant confirmation
                         </div>
                       </div>
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center shrink-0">
-                        <User className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-obsidian">
-                          Fast-Track Checkout
-                        </div>
-                        <div className="text-[11px] text-stone-500">
-                          Sign in with Mobile OTP or continue as Express Guest
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    {!user ? (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => setIsAuthModalOpen(true)}
-                          className="px-3 py-1.5 rounded-xl bg-gold text-white font-bold text-xs hover:bg-gold-dark transition shadow-2xs"
-                        >
-                          Sign In with OTP
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleQuickGuestSubmit}
-                          className="px-3 py-1.5 rounded-xl bg-white border border-stone-300 font-bold text-xs text-stone-700 hover:bg-stone-100 transition shadow-2xs"
-                        >
-                          Continue as Guest
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setIsAuthModalOpen(true)}
-                        className="text-[11px] text-gold-dark hover:underline font-bold"
-                      >
-                        Switch Account
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => setIsAuthModalOpen(true)}
+                      className="text-[11px] text-gold-dark hover:underline font-bold shrink-0"
+                    >
+                      Change Number
+                    </button>
                   </div>
-                </div>
+                )}
 
                 {/* Date Conflict Alert Banner */}
                 {dateConflict && (
@@ -344,18 +326,51 @@ export default function BookingPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-obsidian mb-1">
-                        Mobile Number (WhatsApp Preferred) <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="+91 98765 43210"
-                        className="w-full px-3.5 py-2.5 rounded-xl minimal-input text-xs sm:text-sm text-obsidian"
-                        required
-                      />
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-semibold text-obsidian">
+                          Mobile Number <span className="text-rose-500">*</span>
+                        </label>
+                        {isPhoneVerified ? (
+                          <span className="text-[10.5px] font-bold text-emerald-700 flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" /> Verified
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-stone-500 font-medium">
+                            Starts with 6, 7, 8, or 9
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="relative">
+                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs font-bold text-stone-600">
+                          <span>🇮🇳</span>
+                          <span>+91</span>
+                          <span className="text-stone-300">|</span>
+                        </div>
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleChange}
+                          placeholder="98450 12345"
+                          maxLength={10}
+                          className={`w-full pl-20 pr-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold tracking-wide text-obsidian placeholder-stone-400 focus:outline-none focus:ring-2 ${
+                            phoneError 
+                              ? 'border-2 border-rose-400 bg-rose-50/20 focus:ring-rose-400' 
+                              : isPhoneVerified
+                              ? 'border-2 border-emerald-400 bg-emerald-50/10 focus:ring-emerald-400'
+                              : 'minimal-input focus:ring-gold/60'
+                          }`}
+                          required
+                        />
+                      </div>
+
+                      {phoneError && (
+                        <div className="mt-1.5 p-2 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-[11px] leading-tight flex items-start gap-1.5 animate-in fade-in">
+                          <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />
+                          <span>{phoneError}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -477,7 +492,7 @@ export default function BookingPage() {
                       rows="3"
                       value={formData.specialRequests}
                       onChange={handleChange}
-                      placeholder="e.g. Arriving late night around 2:00 AM on IndiGo flight. Please arrange airport taxi pickup."
+                      placeholder="e.g. Arriving late night around 2:00 AM on flight. Please arrange airport taxi pickup."
                       className="w-full px-3.5 py-2.5 rounded-xl minimal-input text-xs sm:text-sm text-obsidian"
                     ></textarea>
                   </div>
@@ -485,19 +500,21 @@ export default function BookingPage() {
                   <div className="pt-2">
                     <button
                       type="submit"
-                      disabled={Boolean(dateConflict)}
+                      disabled={Boolean(dateConflict) || Boolean(phoneError) || formData.phone.length !== 10}
                       className={`w-full py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-md ${
-                        dateConflict
+                        dateConflict || Boolean(phoneError) || formData.phone.length !== 10
                           ? 'bg-stone-300 text-stone-500 cursor-not-allowed'
                           : 'minimal-btn-gold text-white'
                       }`}
                     >
                       {dateConflict ? (
                         <span>⚠️ Dates Unavailable for This Room</span>
-                      ) : !user ? (
-                        <span>Proceed to Book (Phone OTP / Guest Checkout)</span>
-                      ) : (
+                      ) : Boolean(phoneError) || formData.phone.length !== 10 ? (
+                        <span>Enter Valid 10-Digit Mobile Number</span>
+                      ) : isPhoneVerified ? (
                         <span>Confirm Reservation as {user.name}</span>
+                      ) : (
+                        <span>Verify Mobile with OTP & Confirm Booking</span>
                       )}
                     </button>
                   </div>

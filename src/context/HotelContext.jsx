@@ -36,24 +36,11 @@ export function HotelProvider({ children }) {
 
   // Booking enquiries
   const [bookingEnquiries, setBookingEnquiries] = useState(() => {
-    const saved = localStorage.getItem('sv_booking_enquiries');
-    if (saved) return JSON.parse(saved);
-    return [
-      {
-        id: 'ENQ-1001',
-        fullName: 'Karthik Rao',
-        phone: '+91 98450 12345',
-        email: 'karthik.rao@example.com',
-        checkIn: '2026-11-12',
-        checkOut: '2026-11-14',
-        adults: 2,
-        children: 1,
-        roomCategory: 'Deluxe Vista Suite',
-        specialRequests: 'Quiet room requested for family stay. Early check-in if possible.',
-        status: 'Confirmed',
-        createdAt: '2026-11-04 14:32'
-      }
-    ];
+    try {
+      const saved = localStorage.getItem('sv_booking_enquiries');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [];
   });
 
   // Contact enquiries
@@ -94,23 +81,6 @@ export function HotelProvider({ children }) {
     setUser(userProfile);
     localStorage.setItem('sv_user_session', JSON.stringify(userProfile));
     return userProfile;
-  };
-
-  const loginAsGuest = () => {
-    const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
-    const guestId = `GST_${randomSuffix}`;
-    const guestProfile = {
-      isGuest: true,
-      guestId,
-      name: `Guest ${guestId}`,
-      phone: '',
-      email: '',
-      username: `guest_${randomSuffix.toLowerCase()}`,
-      loggedInAt: new Date().toISOString()
-    };
-    setUser(guestProfile);
-    localStorage.setItem('sv_user_session', JSON.stringify(guestProfile));
-    return guestProfile;
   };
 
   const logoutUser = () => {
@@ -259,13 +229,11 @@ export function HotelProvider({ children }) {
   // =========================================================================
   const addBookingEnquiry = async (data) => {
     const bookingId = `AST-B-${Math.floor(1000 + Math.random() * 9000)}`;
-    const guestId = user?.isGuest ? user.guestId : null;
-    const guestTag = guestId ? `[Guest ID: ${guestId}] ` : (user?.username ? `[@${user.username}] ` : '');
 
     const newEnq = {
       id: bookingId,
       ...data,
-      guestId,
+      phone: data.phone || user?.phone || '',
       status: 'Confirmed',
       createdAt: new Date().toISOString().replace('T', ' ').slice(0, 16)
     };
@@ -277,7 +245,7 @@ export function HotelProvider({ children }) {
       try {
         const payload = {
           id: bookingId,
-          guest: data.fullName || user?.name || (guestId ? `Guest ${guestId}` : 'Guest'),
+          guest: data.fullName || user?.name || 'Verified Guest',
           guest_email: data.email || user?.email || null,
           guest_phone: data.phone || user?.phone || null,
           room: data.roomCategory || 'Room',
@@ -286,8 +254,8 @@ export function HotelProvider({ children }) {
           amount: Number(data.estimatedTariff) || 2000,
           status: 'CONFIRMED',
           payment: 'PENDING',
-          source: user?.isGuest ? 'Guest Checkout (Shivanandi Vista)' : 'Phone OTP Verified (Shivanandi Vista)',
-          special_requests: guestTag + (data.specialRequests || '')
+          source: 'Mobile OTP Verified (Shivanandi Vista)',
+          special_requests: data.specialRequests || null
         };
 
         const { error } = await supabase.from('reservations').insert(payload);
@@ -399,7 +367,6 @@ export function HotelProvider({ children }) {
         isAdminLoggedIn,
         user,
         loginWithPhoneOtp,
-        loginAsGuest,
         logoutUser,
         isAuthModalOpen,
         setIsAuthModalOpen,

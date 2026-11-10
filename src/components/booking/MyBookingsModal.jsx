@@ -25,7 +25,7 @@ export default function MyBookingsModal({ isOpen, onClose }) {
     property
   } = useHotel();
 
-  const [searchQuery, setSearchQuery] = useState(user?.phone || user?.guestId || '');
+  const [searchQuery, setSearchQuery] = useState(user?.phone || '');
 
   if (!isOpen) return null;
 
@@ -75,10 +75,9 @@ export default function MyBookingsModal({ isOpen, onClose }) {
   // Filter bookings based on active user or search query
   const filteredBookings = uniqueBookings.filter(b => {
     if (!searchQuery.trim()) {
-      // If user is logged in, show their bookings by phone or name or guest ID
+      // If user is logged in, show their bookings by phone or name
       if (user) {
         if (user.phone && b.phone && b.phone.includes(user.phone.slice(-8))) return true;
-        if (user.guestId && (b.id.includes(user.guestId) || (b.specialRequests && b.specialRequests.includes(user.guestId)))) return true;
         if (user.name && b.guest && b.guest.toLowerCase().includes(user.name.toLowerCase())) return true;
         return false;
       }
@@ -92,9 +91,8 @@ export default function MyBookingsModal({ isOpen, onClose }) {
     const matchGuest = b.guest && b.guest.toLowerCase().includes(q);
     const matchRoom = b.room && b.room.toLowerCase().includes(q);
     const matchPhone = b.phone && cleanQ && b.phone.replace(/\D/g, '').includes(cleanQ);
-    const matchRequests = b.specialRequests && b.specialRequests.toLowerCase().includes(q);
 
-    return matchId || matchGuest || matchRoom || matchPhone || matchRequests;
+    return matchId || matchGuest || matchRoom || matchPhone;
   });
 
   return (
@@ -106,11 +104,11 @@ export default function MyBookingsModal({ isOpen, onClose }) {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] tracking-[0.2em] font-bold uppercase text-gold">
-                GUEST SERVICES
+                GUEST RESERVATIONS
               </span>
               {user && (
-                <span className="px-2 py-0.5 rounded-full bg-white/10 text-white text-[10px] font-semibold">
-                  {user.isGuest ? `Guest: ${user.guestId}` : `Logged in: ${user.name}`}
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 text-[10px] font-semibold">
+                  Verified: +91 {user.phone}
                 </span>
               )}
             </div>
@@ -135,7 +133,7 @@ export default function MyBookingsModal({ isOpen, onClose }) {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by Mobile Number, Guest ID (GST_XXXX), or Booking Reference..."
+              placeholder="Search by 10-Digit Mobile Number (+91) or Booking Reference (AST-B-XXXX)..."
               className="w-full pl-10 pr-4 py-2.5 bg-white rounded-xl border border-stone-300 text-xs font-semibold text-obsidian placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-gold/60"
             />
           </div>
@@ -288,3 +286,4 @@ export default function MyBookingsModal({ isOpen, onClose }) {
     </div>
   );
 }
+

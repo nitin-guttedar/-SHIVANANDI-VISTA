@@ -161,10 +161,10 @@ export default function Navbar() {
                     className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-stone-200 bg-stone-50 hover:bg-stone-100 text-xs font-bold text-obsidian transition"
                   >
                     <div className="w-6 h-6 rounded-full bg-gold/20 text-gold-dark flex items-center justify-center font-bold text-[11px]">
-                      {user.isGuest ? 'G' : (user.name?.[0] || 'U')}
+                      {user.name?.[0] || 'U'}
                     </div>
                     <span className="max-w-[100px] truncate">
-                      {user.isGuest ? user.guestId : user.name}
+                      {user.name}
                     </span>
                     <ChevronDown className="w-3.5 h-3.5 text-stone-400" />
                   </button>
@@ -176,19 +176,14 @@ export default function Navbar() {
                     >
                       <div className="px-4 py-2 border-b border-stone-100">
                         <div className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">
-                          Signed in as
+                          Verified Mobile Account
                         </div>
                         <div className="font-bold text-obsidian text-xs mt-0.5 truncate">
                           {user.name}
                         </div>
                         {user.phone && (
-                          <div className="text-[11px] text-stone-500 font-mono">
+                          <div className="text-[11px] text-emerald-700 font-mono font-bold mt-0.5">
                             +91 {user.phone}
-                          </div>
-                        )}
-                        {user.isGuest && (
-                          <div className="text-[10.5px] text-emerald-600 font-bold mt-0.5">
-                            Guest Checkout Account
                           </div>
                         )}
                       </div>
@@ -216,8 +211,8 @@ export default function Navbar() {
                   onClick={() => setIsAuthModalOpen(true)}
                   className="px-3.5 py-2 rounded-xl text-xs font-bold text-stone-700 hover:text-obsidian hover:bg-stone-100 border border-stone-300 transition flex items-center gap-1.5"
                 >
-                  <User className="w-3.5 h-3.5 text-stone-500" />
-                  <span>Sign In / OTP</span>
+                  <Phone className="w-3.5 h-3.5 text-gold" />
+                  <span>Sign In with Mobile</span>
                 </button>
               )}
 
@@ -273,14 +268,14 @@ export default function Navbar() {
               {user ? (
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-gold/20 text-gold-dark flex items-center justify-center font-bold text-xs">
-                    {user.isGuest ? 'G' : (user.name?.[0] || 'U')}
+                    {user.name?.[0] || 'U'}
                   </div>
                   <div>
                     <div className="text-xs font-bold text-obsidian">
                       {user.name}
                     </div>
-                    <div className="text-[10px] text-stone-500 font-mono">
-                      {user.phone ? `+91 ${user.phone}` : (user.isGuest ? user.guestId : '')}
+                    <div className="text-[10px] text-emerald-700 font-mono font-bold">
+                      +91 {user.phone}
                     </div>
                   </div>
                 </div>
@@ -292,8 +287,8 @@ export default function Navbar() {
                   }}
                   className="w-full py-2 px-3 rounded-xl bg-white border border-stone-300 text-xs font-bold text-obsidian flex items-center justify-center gap-2"
                 >
-                  <User className="w-4 h-4 text-gold" />
-                  <span>Sign In with Phone OTP / Guest</span>
+                  <Phone className="w-4 h-4 text-gold" />
+                  <span>Sign In with Mobile OTP</span>
                 </button>
               )}
 
