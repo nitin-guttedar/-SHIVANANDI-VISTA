@@ -78,3 +78,4 @@ export function validateIndianMobile(phoneNumber) {
     formatted: `+91 ${digits.slice(0, 5)} ${digits.slice(5)}` 
   };
 }
+
