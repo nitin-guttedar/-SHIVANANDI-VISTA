@@ -48,7 +48,7 @@ export default function AdminPage() {
     slug: '',
     category: 'Airport Travel Information',
     readTime: '5 min read',
-    image: 'https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=1000&q=80',
+    image: 'https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=3840&q=95',
     excerpt: '',
     content: ''
   });
@@ -98,7 +98,7 @@ export default function AdminPage() {
       slug: '',
       category: 'Airport Travel Information',
       readTime: '5 min read',
-      image: 'https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=1000&q=80',
+      image: 'https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=3840&q=95',
       excerpt: '',
       content: ''
     });

@@ -26,13 +26,13 @@ export default function Footer() {
                   SHIVANANDI VISTA
                 </h3>
                 <p className="text-xs uppercase tracking-widest text-gold-light font-semibold">
-                  Hotel &bull; Yelahanka, Bengaluru
+                  Hotel &bull; Near Bengaluru International Airport
                 </p>
               </div>
             </div>
 
             <p className="text-obsidian-400 text-sm leading-relaxed max-w-md">
-              A premier hospitality destination in Yelahanka Taluk, Bengaluru. Offering comfortable suites, warm personalized service, 24/7 guest assistance, and seamless airport connectivity.
+              A premier hospitality destination located near Bengaluru International Airport (BLR). Offering comfortable suites, warm personalized service, 24/7 guest assistance, and seamless airport connectivity.
             </p>
 
             <div className="pt-2 space-y-2 text-xs text-obsidian-300">
@@ -173,7 +173,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-obsidian-500 gap-4">
           <p>
-            &copy; {new Date().getFullYear()} SHIVANANDI VISTA. All Rights Reserved. Crafted with warm hospitality and clean minimalism.
+            &copy; {new Date().getFullYear()} SHIVANANDI VISTA. All Rights Reserved.
           </p>
 
           <div className="flex items-center gap-4">

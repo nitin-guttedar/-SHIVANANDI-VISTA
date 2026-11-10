@@ -9,7 +9,7 @@ export default function SEO({
 }) {
   useEffect(() => {
     // Update Title
-    const fullTitle = title 
+    const fullTitle = title
       ? `${title} | SHIVANANDI VISTA Bengaluru`
       : 'SHIVANANDI VISTA | Hotel & Resort in Yelahanka, Bengaluru';
     document.title = fullTitle;
@@ -21,7 +21,7 @@ export default function SEO({
       metaDesc.name = 'description';
       document.head.appendChild(metaDesc);
     }
-    metaDesc.content = description || 'Discover SHIVANANDI VISTA, a welcoming hotel and resort in Yelahanka Taluk, Bengaluru. Explore comfortable rooms, hospitality, and direct booking enquiries.';
+    metaDesc.content = description || 'Discover SHIVANANDI VISTA, a welcoming hotel and resort located near Bengaluru International Airport (BLR). Explore comfortable rooms, hospitality, and direct booking enquiries.';
 
     // Update Keywords if present
     if (keywords) {

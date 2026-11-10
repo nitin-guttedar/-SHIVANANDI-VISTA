@@ -48,9 +48,9 @@ export default function LocationPage() {
   return (
     <>
       <SEO
-        title="SHIVANANDI VISTA Location | Yelahanka & Bengaluru Travel Guide"
-        description="Find SHIVANANDI VISTA in Begur, BK Halli Post, Yelahanka Taluk, Bengaluru. Explore North Bengaluru, Devanahalli and airport-area travel information."
-        keywords="Location SHIVANANDI VISTA, Hotels in Yelahanka, Accommodation Near Bangalore Airport, Stay in Begur BK Halli, Driving Directions to SHIVANANDI VISTA"
+        title="SHIVANANDI VISTA Location | Near Bengaluru International Airport"
+        description="Find SHIVANANDI VISTA in Begur, BK Halli Post, near Bengaluru International Airport (BLR). Explore airport transit routes, Devanahalli and North Bengaluru travel guide."
+        keywords="Location SHIVANANDI VISTA, Hotel Near Bangalore Airport, Accommodation Near Kempegowda Airport, Stay in Begur BK Halli, Driving Directions to SHIVANANDI VISTA"
         canonicalUrl="/location-and-nearby-attractions"
       />
 
@@ -58,8 +58,8 @@ export default function LocationPage() {
       <section className="bg-[#141210] text-white py-16 relative overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=1600&q=80"
-            alt="North Bengaluru Landscape"
+            src="/images/hotel-exterior-dusk.jpg"
+            alt="SHIVANANDI VISTA Location"
             className="w-full h-full object-cover opacity-20"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#141210] via-[#141210]/80 to-black/60"></div>
@@ -67,13 +67,13 @@ export default function LocationPage() {
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
           <span className="inline-block px-3 py-1 rounded-full bg-white/10 text-gold-light text-xs uppercase font-semibold tracking-widest mb-3 border border-white/10">
-            North Bengaluru Travel Guide
+            Near Bengaluru International Airport (BLR)
           </span>
           <h1 className="font-serif text-3xl sm:text-5xl font-bold tracking-tight mb-3">
             Find SHIVANANDI VISTA
           </h1>
           <p className="text-obsidian-300 text-sm sm:text-base max-w-xl mx-auto font-light leading-relaxed">
-            Your Comprehensive Location and Neighborhood Guide in Yelahanka Taluk, Bengaluru.
+            Your Comprehensive Location and Transit Guide Near Bengaluru International Airport.
           </p>
         </div>
       </section>
@@ -92,7 +92,7 @@ export default function LocationPage() {
                 <h2 className="font-serif text-xl font-bold text-obsidian">
                   Our Verified Address
                 </h2>
-                <span className="text-xs text-obsidian-500">Yelahanka Taluk, Bengaluru</span>
+                <span className="text-xs text-obsidian-500">Near Bengaluru International Airport (BLR)</span>
               </div>
             </div>
 
@@ -101,7 +101,7 @@ export default function LocationPage() {
                 <p className="font-bold text-obsidian text-base mb-1">SHIVANANDI VISTA</p>
                 <p>No.15, RD Greenwoods,</p>
                 <p>I Phase, Begur, BK Halli Post,</p>
-                <p>Yelahanka Taluk, Bangalore – 562149,</p>
+                <p>Near Bengaluru International Airport – 562149,</p>
                 <p className="text-gold-dark font-semibold mt-1">Karnataka, India</p>
               </div>
 

@@ -46,9 +46,9 @@ export default function ContactPage() {
   return (
     <>
       <SEO
-        title="Contact SHIVANANDI VISTA | Hotel & Resort Bengaluru"
-        description="Contact SHIVANANDI VISTA hotel and resort in Begur, BK Halli Post, Yelahanka Taluk, Bengaluru. Call +91 99003 14686 or enquire on WhatsApp."
-        keywords="Contact SHIVANANDI VISTA, Phone Number SHIVANANDI VISTA, Hotel in Yelahanka Contact, Begur BK Halli Hotel, Bangalore Airport Stay Contact"
+        title="Contact SHIVANANDI VISTA | Hotel Near Bengaluru Airport"
+        description="Contact SHIVANANDI VISTA hotel and resort located near Bengaluru International Airport, Begur, BK Halli Post. Call +91 99003 14686 or enquire on WhatsApp."
+        keywords="Contact SHIVANANDI VISTA, Phone Number SHIVANANDI VISTA, Hotel Near Bangalore Airport, Begur BK Halli Hotel, Bangalore Airport Stay Contact"
         canonicalUrl="/contact-us"
       />
 
@@ -56,7 +56,7 @@ export default function ContactPage() {
       <section className="bg-[#141210] text-white py-16 relative overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1600&q=80"
+            src="/images/hotel-exterior-night.jpg"
             alt="Contact SHIVANANDI VISTA"
             className="w-full h-full object-cover opacity-20"
           />
@@ -321,7 +321,7 @@ export default function ContactPage() {
             ></iframe>
           </div>
           <div className="p-3 text-xs text-obsidian-600 flex items-center justify-between">
-            <span>Location: RD Greenwoods, Begur, BK Halli Post, Yelahanka Taluk, Bangalore – 562149</span>
+            <span>Location: RD Greenwoods, Begur, BK Halli Post, Near Bengaluru International Airport – 562149</span>
             <a
               href={property.googleMapsDirectionsUrl}
               target="_blank"

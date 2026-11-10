@@ -10,9 +10,9 @@ export default function AboutUs() {
   return (
     <>
       <SEO
-        title="About SHIVANANDI VISTA | Hotel & Resort in Bengaluru"
-        description="Learn about SHIVANANDI VISTA, a hotel and resort in Yelahanka Taluk, Bengaluru, offering welcoming hospitality and accommodation enquiries."
-        keywords="About SHIVANANDI VISTA, Hotel in Yelahanka, Resort in Yelahanka Taluk Bengaluru, Begur BK Halli stay, Hospitality in North Bangalore"
+        title="About SHIVANANDI VISTA | Hotel & Resort Near Bengaluru Airport"
+        description="Learn about SHIVANANDI VISTA, a welcoming hotel and resort located near Bengaluru International Airport (BLR), offering peaceful accommodation and 24/7 guest service."
+        keywords="About SHIVANANDI VISTA, Hotel Near Bangalore Airport, Stay Near Kempegowda Airport, Begur BK Halli stay, Hospitality in North Bangalore"
         canonicalUrl="/about-us"
       />
 
@@ -20,9 +20,9 @@ export default function AboutUs() {
       <section className="bg-[#141210] text-white py-16 relative overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1600&q=80"
+            src="/images/hotel-exterior-night.jpg"
             alt="About SHIVANANDI VISTA Hospitality"
-            className="w-full h-full object-cover opacity-20"
+            className="w-full h-full object-cover opacity-25"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#141210] via-[#141210]/80 to-black/60"></div>
         </div>
@@ -35,7 +35,7 @@ export default function AboutUs() {
             About SHIVANANDI VISTA
           </h1>
           <p className="text-obsidian-300 text-sm sm:text-base max-w-xl mx-auto font-light leading-relaxed">
-            A Welcoming Destination for Comfortable Hospitality in Yelahanka Taluk, Bengaluru.
+            A Welcoming Destination for Comfortable Hospitality Near Bengaluru International Airport.
           </p>
         </div>
       </section>
@@ -51,7 +51,7 @@ export default function AboutUs() {
               Creating Memorable Hospitality Experiences
             </h2>
             <p className="text-obsidian-600 text-sm sm:text-base leading-relaxed">
-              Welcome to <strong>SHIVANANDI VISTA</strong>, a hotel and resort located in Yelahanka Taluk, Bengaluru, Karnataka. We believe that every guest deserves a welcoming environment, thoughtful service, and a comfortable hospitality experience.
+              Welcome to <strong>SHIVANANDI VISTA</strong>, a hotel and resort located near Bengaluru International Airport (BLR). We believe that every guest deserves a welcoming environment, thoughtful service, and a comfortable hospitality experience.
             </p>
             <p className="text-obsidian-600 text-sm sm:text-base leading-relaxed">
               Our goal is to offer visitors an enjoyable place to stay while making their travel and accommodation experience completely convenient. Tucked away in the calm environs of RD Greenwoods, Begur, BK Halli Post, our property provides a tranquil refuge from the busy urban center while ensuring swift access to Kempegowda International Airport and North Bengaluru's business corridors.
@@ -81,7 +81,7 @@ export default function AboutUs() {
           <div className="lg:col-span-5">
             <div className="rounded-2xl overflow-hidden border border-stone-200 bg-white p-3 shadow-sm">
               <img
-                src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80"
+                src="/images/hotel-exterior-day.jpg"
                 alt="SHIVANANDI VISTA Entrance and Hospitality"
                 className="w-full h-[400px] object-cover rounded-xl"
               />
@@ -147,7 +147,7 @@ export default function AboutUs() {
         </p>
 
         <p className="text-obsidian-600 text-sm max-w-2xl mx-auto leading-relaxed">
-          Located in Yelahanka Taluk within the serene Begur and BK Halli neighborhood, our location allows guests to experience peaceful rest with swift access to Kempegowda International Airport (BLR), Devanahalli heritage sites, and the Hebbal expressway.
+          Located near Bengaluru International Airport within the serene Begur and BK Halli neighborhood, our location allows guests to experience peaceful rest with swift 10-15 minute access to Kempegowda International Airport (BLR), Devanahalli heritage sites, and the Hebbal expressway.
         </p>
 
         <div className="pt-2 flex flex-wrap justify-center gap-3">

@@ -37,7 +37,7 @@ export default function BlogPage() {
       <section className="bg-[#141210] text-white py-16 relative overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=1600&q=80"
+            src="/images/hotel-exterior-dusk.jpg"
             alt="Travel Guide Blog at SHIVANANDI VISTA"
             className="w-full h-full object-cover opacity-20"
           />

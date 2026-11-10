@@ -2,9 +2,9 @@
 
 export const PROPERTY_INFO = {
   name: "SHIVANANDI VISTA",
-  tagline: "Your Comfort, Our Hospitality",
-  address: "No.15, RD Greenwoods, I Phase, Begur, BK Halli Post, Yelahanka Taluk, Bangalore – 562149",
-  shortLocation: "Begur, BK Halli Post, Yelahanka Taluk, Bengaluru",
+  tagline: "Hotel & Resort Near Bengaluru International Airport",
+  address: "No.15, RD Greenwoods, I Phase, Begur, BK Halli Post, Near Bengaluru International Airport – 562149",
+  shortLocation: "Near Bengaluru International Airport (BLR), Begur, BK Halli",
   region: "North Bengaluru, Karnataka, India",
   phone: "+91 99003 14686",
   phoneRaw: "+919900314686",
@@ -15,7 +15,7 @@ export const PROPERTY_INFO = {
   checkInTime: "12:00 PM",
   checkOutTime: "11:00 AM",
   googleMapsEmbed: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3885.571424161947!2d77.6256!3d13.1678!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae1ec0b2b8e3ad%3A0x8f7d983023e1e921!2sRD%20Greenwoods%2C%20Begur%2C%20Bengaluru%2C%20Karnataka%20562149!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
-  googleMapsDirectionsUrl: "https://maps.google.com/?q=RD+Greenwoods+Begur+BK+Halli+Yelahanka+Bangalore+562149",
+  googleMapsDirectionsUrl: "https://maps.google.com/?q=RD+Greenwoods+Begur+BK+Halli+Near+Bangalore+Airport+562149",
   coordinates: {
     lat: 13.1678,
     lng: 77.6329
@@ -34,11 +34,11 @@ export const INITIAL_ROOMS = [
     capacity: "Up to 3 Guests (2 Adults + 1 Child)",
     pricePerNight: 3499,
     badge: "Most Popular",
-    image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=3840&q=95",
     gallery: [
-      "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1000&q=80",
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1000&q=80",
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1000&q=80"
+      "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=3840&q=95",
+      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=3840&q=95",
+      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=3840&q=95"
     ],
     amenities: [
       "High-speed Optic Fiber Wi-Fi",
@@ -62,11 +62,11 @@ export const INITIAL_ROOMS = [
     capacity: "Up to 2 Guests",
     pricePerNight: 2899,
     badge: "Business Preferred",
-    image: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=3840&q=95",
     gallery: [
-      "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1000&q=80",
-      "https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=1000&q=80",
-      "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1000&q=80"
+      "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=3840&q=95",
+      "https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=3840&q=95",
+      "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=3840&q=95"
     ],
     amenities: [
       "High-speed Optic Fiber Wi-Fi",
@@ -90,10 +90,10 @@ export const INITIAL_ROOMS = [
     capacity: "Up to 4 Guests",
     pricePerNight: 4699,
     badge: "Family Favorite",
-    image: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=3840&q=95",
     gallery: [
-      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=1000&q=80",
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1000&q=80"
+      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=3840&q=95",
+      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=3840&q=95"
     ],
     amenities: [
       "High-speed Optic Fiber Wi-Fi",
@@ -117,10 +117,10 @@ export const INITIAL_ROOMS = [
     capacity: "Up to 2 Guests",
     pricePerNight: 2299,
     badge: "Airport Special",
-    image: "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=3840&q=95",
     gallery: [
-      "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1000&q=80",
-      "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1000&q=80"
+      "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=3840&q=95",
+      "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=3840&q=95"
     ],
     amenities: [
       "High-speed Wi-Fi",
@@ -226,7 +226,7 @@ export const INITIAL_BLOG_POSTS = [
     date: "November 2, 2026",
     readTime: "6 min read",
     author: "Hospitality Desk",
-    image: "https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=3840&q=95",
     excerpt: "Everything you need to know about navigating BLR Airport Terminal 1 & Terminal 2, transit options, lounges, and choosing comfortable accommodation nearby.",
     metaTitle: "Kempegowda Airport Bengaluru Travel Guide | BLR Terminal 1 & 2 Info",
     metaDesc: "Comprehensive guide to Bengaluru Kempegowda International Airport (BLR). Learn about Terminals 1 & 2, airport transit, lounges, and where to stay nearby in Yelahanka.",
@@ -235,7 +235,7 @@ export const INITIAL_BLOG_POSTS = [
 
 Kempegowda International Airport (IATA: BLR), situated in North Bengaluru near Devanahalli, has established itself as one of the finest aviation hubs in Asia. Recognized globally for its sustainable design and the breathtaking garden terminal (Terminal 2), the airport handles hundreds of domestic and international flights around the clock.
 
-For travelers landing late at night or preparing for early dawn departures, choosing accommodation situated within convenient reach of the airport corridor — such as **SHIVANANDI VISTA** in Yelahanka Taluk — ensures a restful night without stressful city traffic.
+For travelers landing late at night or preparing for early dawn departures, choosing accommodation situated within convenient reach of the airport corridor — such as **SHIVANANDI VISTA** located near Bengaluru International Airport — ensures a restful night without stressful city traffic.
 
 ### Understanding Terminal 1 and Terminal 2
 
@@ -250,7 +250,7 @@ For travelers landing late at night or preparing for early dawn departures, choo
 
 ### Why Choose SHIVANANDI VISTA for Your Airport Stay?
 
-Located at RD Greenwoods, Begur, BK Halli Post in Yelahanka Taluk, SHIVANANDI VISTA gives guests 24-hour reception assistance, comfortable air-conditioned suites, reliable Wi-Fi, and personalized cab arrangement so your airport journey remains seamless.
+Located at RD Greenwoods, Begur, BK Halli Post right near Bengaluru International Airport (BLR), SHIVANANDI VISTA gives guests 24-hour reception assistance, comfortable air-conditioned suites, reliable Wi-Fi, and personalized cab arrangement so your airport journey remains seamless.
     `
   },
   {
@@ -261,7 +261,7 @@ Located at RD Greenwoods, Begur, BK Halli Post in Yelahanka Taluk, SHIVANANDI VI
     date: "October 28, 2026",
     readTime: "5 min read",
     author: "Local Explorer",
-    image: "https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=3840&q=95",
     excerpt: "Discover the heritage, scenic lakes, shopping avenues, and cultural landmarks that make Yelahanka in North Bengaluru a delightful destination.",
     metaTitle: "Best Places to Visit in Yelahanka Bangalore | Local Attractions Guide",
     metaDesc: "Explore top tourist spots, historic lakes, shopping malls, and cultural attractions in and around Yelahanka, North Bengaluru. Stay at SHIVANANDI VISTA.",
@@ -294,7 +294,7 @@ When exploring Yelahanka and the surrounding Begur / BK Halli region, SHIVANANDI
     date: "October 20, 2026",
     readTime: "5 min read",
     author: "Heritage Desk",
-    image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=3840&q=95",
     excerpt: "Step back in time to explore the stone walls of Devanahalli Fort, Tipu Sultan's birthplace, ancient Dravidian temples, and local countryside orchards.",
     metaTitle: "Devanahalli Travel Guide | Fort, Heritage & Attractions North Bangalore",
     metaDesc: "A complete heritage guide to Devanahalli near Bengaluru. Explore Tipu Sultan's birthplace, Devanahalli Fort, and nearby stay options at SHIVANANDI VISTA.",
@@ -319,14 +319,14 @@ Located just north of Yelahanka, Devanahalli is celebrated for its deep historic
     date: "October 14, 2026",
     readTime: "7 min read",
     author: "Hospitality Strategist",
-    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=3840&q=95",
     excerpt: "How to pick the right hotel near Bangalore Airport: evaluating peace, connectivity, room tariffs, 24/7 service, and avoiding heavy traffic bottlenecks.",
     metaTitle: "Where to Stay Near Bangalore Airport? Best Accommodation Guide",
     metaDesc: "Looking for hotels near Bangalore Kempegowda Airport? Discover essential tips for choosing quiet, high-value accommodation in Yelahanka and BK Halli.",
     content: `
 ### Balancing Proximity, Peace, and Value
 
-Finding hotel accommodation near Kempegowda International Airport often involves navigating high on-site terminal tariffs or noisy highway motels. Discerning travelers instead select boutique properties in neighboring tranquil belts like Yelahanka Taluk and BK Halli.
+Finding hotel accommodation near Kempegowda International Airport often involves navigating high on-site terminal tariffs or noisy highway motels. Discerning travelers instead select boutique properties in neighboring tranquil belts like Begur and BK Halli near Bengaluru International Airport.
 
 ### What to Look for in an Airport Stay
 
@@ -346,7 +346,7 @@ Finding hotel accommodation near Kempegowda International Airport often involves
     date: "October 08, 2026",
     readTime: "6 min read",
     author: "Adventure Desk",
-    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=3840&q=95",
     excerpt: "Everything you need to plan a memorable morning trip to Nandi Hills: entry timings, sunrise spots, Bhoga Nandeeshwara temple, and breakfast recommendations.",
     metaTitle: "Nandi Hills Weekend Travel Guide | Sunrise Timings & Tips",
     metaDesc: "Plan your trip to Nandi Hills near Bengaluru. Essential tips on sunrise viewing, trekking routes, entry passes, and stay at SHIVANANDI VISTA.",
@@ -370,7 +370,7 @@ Perched at an elevation of 1,478 meters above sea level, Nandi Hills (Nandidurga
     date: "September 30, 2026",
     readTime: "5 min read",
     author: "City Correspondent",
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=3840&q=95",
     excerpt: "A deep dive into the business districts, tech parks, aviation hubs, and green reservoirs shaping Bengaluru's northern economic corridor.",
     metaTitle: "Hebbal & Jakkur Travel Guide | Business & Leisure in North Bengaluru",
     metaDesc: "Discover Manyata Tech Park, Hebbal Lake, and Jakkur Aerodrome. Stay at SHIVANANDI VISTA for business and leisure in North Bengaluru.",
@@ -388,7 +388,7 @@ The corridor stretching from Hebbal Flyover through Jakkur and Yelahanka represe
     date: "September 22, 2026",
     readTime: "5 min read",
     author: "Travel Editor",
-    image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=3840&q=95",
     excerpt: "How to evaluate hygiene, verified amenities, location advantages, and authentic customer service when booking hotel stays across Bengaluru.",
     metaTitle: "Tips for Booking Comfortable Hotels in Bangalore | Travel Guide",
     metaDesc: "Expert advice on selecting hotel rooms in Bengaluru. How to assess locations, facilities, Wi-Fi reliability, and direct booking perks.",
@@ -406,7 +406,7 @@ Bengaluru is a bustling metropolis spanning vast distances. Choosing accommodati
     date: "September 15, 2026",
     readTime: "6 min read",
     author: "Transit Specialist",
-    image: "https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=1000&q=80",
+    image: "https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=3840&q=95",
     excerpt: "Stress-free tips for catching redeye flights and handling midnight arrivals at Bangalore Kempegowda Airport with comfort and safety.",
     metaTitle: "Late-Night & Early-Morning BLR Airport Travel Guide | Tips",
     metaDesc: "How to plan red-eye flights and early-morning airport transfers at Kempegowda Airport Bengaluru. Convenient accommodation at SHIVANANDI VISTA.",
@@ -421,7 +421,7 @@ Over 40% of international departures from Kempegowda International Airport take 
 export const FAQS_LIST = [
   {
     q: "Where is SHIVANANDI VISTA located?",
-    a: "SHIVANANDI VISTA is situated at No.15, RD Greenwoods, I Phase, Begur, BK Halli Post, Yelahanka Taluk, Bangalore – 562149. It is conveniently situated in North Bengaluru within comfortable driving proximity to Kempegowda International Airport (BLR) and Yelahanka."
+    a: "SHIVANANDI VISTA is located at No.15, RD Greenwoods, I Phase, Begur, BK Halli Post, situated conveniently near Bengaluru International Airport (BLR) – 562149. It provides swift, direct highway transit to Kempegowda International Airport terminals and North Bengaluru business hubs."
   },
   {
     q: "What are your check-in and check-out timings?",
@@ -451,44 +451,44 @@ export const FAQS_LIST = [
 
 export const GALLERY_IMAGES = [
   {
-    title: "Deluxe Suite Living Area",
+    title: "SHIVANANDI VISTA Twilight Building",
+    category: "Property",
+    url: "/images/hotel-exterior-dusk.jpg"
+  },
+  {
+    title: "Deluxe Bedroom & Balcony View",
     category: "Rooms",
-    url: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1000&q=80"
+    url: "/images/hotel-room-deluxe.jpg"
+  },
+  {
+    title: "Illuminated Festive Night Exterior",
+    category: "Property",
+    url: "/images/hotel-exterior-night.jpg"
+  },
+  {
+    title: "Hotel Entrance & Day Facade",
+    category: "Property",
+    url: "/images/hotel-exterior-day.jpg"
+  },
+  {
+    title: "In-Room Amenities & Workspace",
+    category: "Rooms",
+    url: "/images/hotel-room-collage.jpg"
   },
   {
     title: "Executive Luxury King Bed",
     category: "Rooms",
-    url: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1000&q=80"
-  },
-  {
-    title: "Warm Hospitality Reception",
-    category: "Property",
-    url: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1000&q=80"
-  },
-  {
-    title: "Serene Greenery & Courtyard",
-    category: "Property",
-    url: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1000&q=80"
+    url: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=3840&q=95"
   },
   {
     title: "Modern Ensuite Bath",
     category: "Amenities",
-    url: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1000&q=80"
+    url: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=3840&q=95"
   },
   {
     title: "Coffee & Morning Tea Setup",
     category: "Dining",
-    url: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1000&q=80"
-  },
-  {
-    title: "Transit Comfort Room",
-    category: "Rooms",
-    url: "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1000&q=80"
-  },
-  {
-    title: "Lush North Bengaluru Landscape",
-    category: "Property",
-    url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80"
+    url: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=3840&q=95"
   }
 ];
 

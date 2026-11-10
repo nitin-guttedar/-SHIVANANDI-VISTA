@@ -15,13 +15,13 @@ const HotelContext = createContext(null);
 export function HotelProvider({ children }) {
   // Rooms state with local persistence
   const [rooms, setRooms] = useState(() => {
-    const saved = localStorage.getItem('sv_rooms');
+    const saved = localStorage.getItem('sv_rooms_v5');
     return saved ? JSON.parse(saved) : INITIAL_ROOMS;
   });
 
   // Blog posts state
   const [blogPosts, setBlogPosts] = useState(() => {
-    const saved = localStorage.getItem('sv_blogs');
+    const saved = localStorage.getItem('sv_blogs_v5');
     return saved ? JSON.parse(saved) : INITIAL_BLOG_POSTS;
   });
 
@@ -89,11 +89,11 @@ export function HotelProvider({ children }) {
 
   // Sync state to local storage
   useEffect(() => {
-    localStorage.setItem('sv_rooms', JSON.stringify(rooms));
+    localStorage.setItem('sv_rooms_v5', JSON.stringify(rooms));
   }, [rooms]);
 
   useEffect(() => {
-    localStorage.setItem('sv_blogs', JSON.stringify(blogPosts));
+    localStorage.setItem('sv_blogs_v5', JSON.stringify(blogPosts));
   }, [blogPosts]);
 
   useEffect(() => {

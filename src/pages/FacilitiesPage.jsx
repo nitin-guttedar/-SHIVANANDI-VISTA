@@ -29,7 +29,7 @@ export default function FacilitiesPage() {
       <section className="bg-[#141210] text-white py-16 relative overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1600&q=80"
+            src="/images/hotel-room-collage.jpg"
             alt="Facilities at SHIVANANDI VISTA"
             className="w-full h-full object-cover opacity-20"
           />

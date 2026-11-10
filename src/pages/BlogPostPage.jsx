@@ -180,7 +180,7 @@ export default function BlogPostPage() {
           </h3>
 
           <p className="text-xs sm:text-sm text-obsidian-600 max-w-lg mx-auto leading-relaxed">
-            Stay at <strong>SHIVANANDI VISTA</strong> in Yelahanka Taluk. Enjoy comfortable air-conditioned suites, 24/7 check-in flexibility, and easy connectivity to Kempegowda Airport.
+            Stay at <strong>SHIVANANDI VISTA</strong> near Bengaluru International Airport. Enjoy comfortable air-conditioned suites, 24/7 check-in flexibility, and effortless 10-15 minute connectivity to Kempegowda Airport terminals.
           </p>
 
           <div className="pt-2 flex flex-wrap justify-center gap-3">

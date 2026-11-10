@@ -30,7 +30,7 @@ export default function ExperiencesPage() {
         "Close Proximity to Lakes & Parks in Yelahanka",
         "Customized In-Room Refreshments"
       ],
-      image: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=800&q=80"
+      image: "/images/hotel-room-deluxe.jpg"
     },
     {
       title: "Airport Transit & Layover Stays",
@@ -43,7 +43,7 @@ export default function ExperiencesPage() {
         "Airport Cab & Taxi Booking Assistance",
         "Early Morning Wakeup Calls & Refreshments"
       ],
-      image: "https://images.unsplash.com/photo-1542296332-2e4473faf563?auto=format&fit=crop&w=800&q=80"
+      image: "/images/hotel-exterior-dusk.jpg"
     },
     {
       title: "Corporate & Business Travel",
@@ -56,7 +56,7 @@ export default function ExperiencesPage() {
         "Continuous 100% Power Generator Backup",
         "Digital Invoicing with GST Billing"
       ],
-      image: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=800&q=80"
+      image: "/images/hotel-room-collage.jpg"
     },
     {
       title: "Weekend Leisure & Staycations",
@@ -69,7 +69,7 @@ export default function ExperiencesPage() {
         "Peaceful Neighborhood Away from Traffic",
         "Fresh Morning Breakfast Options"
       ],
-      image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80"
+      image: "/images/hotel-exterior-day.jpg"
     },
     {
       title: "Special Celebrations & Private Gatherings",
@@ -82,7 +82,7 @@ export default function ExperiencesPage() {
         "Flexible Gathering & Dining Arrangements",
         "Private and Secure Ambiance"
       ],
-      image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80"
+      image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=3840&q=95"
     },
     {
       title: "Group Stays & Wedding Guest Hosting",
@@ -95,7 +95,7 @@ export default function ExperiencesPage() {
         "Generous On-Site Parking for Multiple Cabs",
         "Luggage Handling & Group Welcome"
       ],
-      image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80"
+      image: "/images/hotel-exterior-night.jpg"
     }
   ];
 
@@ -112,7 +112,7 @@ export default function ExperiencesPage() {
       <section className="bg-[#141210] text-white py-16 relative overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1600&q=80"
+            src="/images/hotel-exterior-night.jpg"
             alt="Experiences at SHIVANANDI VISTA"
             className="w-full h-full object-cover opacity-20"
           />
