@@ -68,12 +68,83 @@ export function HotelProvider({ children }) {
     return localStorage.getItem('sv_admin_auth') === 'true';
   });
 
+  // User auth state (Phone OTP / Express Guest)
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sv_user_session');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return null;
+  });
+
+  // Modal open states
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isMyBookingsOpen, setIsMyBookingsOpen] = useState(false);
+
   // Toast message
   const [toast, setToast] = useState(null);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  // User auth operations
+  const loginWithPhoneOtp = (userProfile) => {
+    setUser(userProfile);
+    localStorage.setItem('sv_user_session', JSON.stringify(userProfile));
+    return userProfile;
+  };
+
+  const loginAsGuest = () => {
+    const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
+    const guestId = `GST_${randomSuffix}`;
+    const guestProfile = {
+      isGuest: true,
+      guestId,
+      name: `Guest ${guestId}`,
+      phone: '',
+      email: '',
+      username: `guest_${randomSuffix.toLowerCase()}`,
+      loggedInAt: new Date().toISOString()
+    };
+    setUser(guestProfile);
+    localStorage.setItem('sv_user_session', JSON.stringify(guestProfile));
+    return guestProfile;
+  };
+
+  const logoutUser = () => {
+    setUser(null);
+    localStorage.removeItem('sv_user_session');
+    showToast('You have signed out from user session.');
+  };
+
+  // Overlap and Conflict Validation
+  const checkRoomConflict = (roomIdentifier, checkInDate, checkOutDate) => {
+    if (!checkInDate || !checkOutDate) return null;
+    const newIn = new Date(checkInDate).getTime();
+    const newOut = new Date(checkOutDate).getTime();
+    if (isNaN(newIn) || isNaN(newOut) || newOut <= newIn) return null;
+
+    const cleanNum = String(roomIdentifier || '').replace(/\D/g, '');
+    const cleanIdent = String(roomIdentifier || '').toLowerCase();
+
+    return (reservations || []).find(res => {
+      if (res.status === 'CANCELLED') return false;
+
+      const rStr = String(res.room || '').toLowerCase();
+      const matchesRoom = rStr === cleanIdent || 
+        (cleanNum && (rStr.includes(`room ${cleanNum}`) || rStr.includes(cleanNum) || rStr === cleanNum));
+
+      if (!matchesRoom) return false;
+
+      const resIn = new Date(res.check_in || res.checkIn).getTime();
+      const resOut = new Date(res.check_out || res.checkOut).getTime();
+      if (isNaN(resIn) || isNaN(resOut)) return false;
+
+      // Overlap condition: newIn < resOut && newOut > resIn
+      return (newIn < resOut && newOut > resIn);
+    });
   };
 
   // Sync state to local storage
@@ -188,9 +259,13 @@ export function HotelProvider({ children }) {
   // =========================================================================
   const addBookingEnquiry = async (data) => {
     const bookingId = `AST-B-${Math.floor(1000 + Math.random() * 9000)}`;
+    const guestId = user?.isGuest ? user.guestId : null;
+    const guestTag = guestId ? `[Guest ID: ${guestId}] ` : (user?.username ? `[@${user.username}] ` : '');
+
     const newEnq = {
       id: bookingId,
       ...data,
+      guestId,
       status: 'Confirmed',
       createdAt: new Date().toISOString().replace('T', ' ').slice(0, 16)
     };
@@ -202,17 +277,17 @@ export function HotelProvider({ children }) {
       try {
         const payload = {
           id: bookingId,
-          guest: data.fullName || 'Guest',
-          guest_email: data.email || null,
-          guest_phone: data.phone || null,
+          guest: data.fullName || user?.name || (guestId ? `Guest ${guestId}` : 'Guest'),
+          guest_email: data.email || user?.email || null,
+          guest_phone: data.phone || user?.phone || null,
           room: data.roomCategory || 'Room',
           check_in: data.checkIn,
           check_out: data.checkOut,
           amount: Number(data.estimatedTariff) || 2000,
           status: 'CONFIRMED',
           payment: 'PENDING',
-          source: 'Shivanandi Vista Direct Portal',
-          special_requests: data.specialRequests || null
+          source: user?.isGuest ? 'Guest Checkout (Shivanandi Vista)' : 'Phone OTP Verified (Shivanandi Vista)',
+          special_requests: guestTag + (data.specialRequests || '')
         };
 
         const { error } = await supabase.from('reservations').insert(payload);
@@ -222,6 +297,13 @@ export function HotelProvider({ children }) {
             ...payload,
             hotel_id: 'hotel_aurastay_01'
           });
+        }
+
+        // Check if check-in is today and update room to OCCUPIED
+        const todayStr = new Date().toISOString().split('T')[0];
+        const roomNumMatch = String(data.roomCategory).match(/\b(\d+)\b/);
+        if (roomNumMatch && data.checkIn <= todayStr && data.checkOut >= todayStr) {
+          await supabase.from('rooms').update({ status: 'OCCUPIED' }).eq('room_number', roomNumMatch[1]);
         }
       } catch (err) {
         console.warn('Supabase reservation insert synced locally', err);
@@ -315,6 +397,15 @@ export function HotelProvider({ children }) {
         bookingEnquiries,
         contactEnquiries,
         isAdminLoggedIn,
+        user,
+        loginWithPhoneOtp,
+        loginAsGuest,
+        logoutUser,
+        isAuthModalOpen,
+        setIsAuthModalOpen,
+        isMyBookingsOpen,
+        setIsMyBookingsOpen,
+        checkRoomConflict,
         toast,
         addBookingEnquiry,
         addContactEnquiry,

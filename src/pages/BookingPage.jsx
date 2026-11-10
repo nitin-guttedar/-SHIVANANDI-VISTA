@@ -10,14 +10,28 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
-  FileText
+  AlertTriangle,
+  FileText,
+  User,
+  ShieldCheck,
+  UserCheck
 } from 'lucide-react';
 import SEO from '../components/common/SEO';
 import { useHotel } from '../context/HotelContext';
 
 export default function BookingPage() {
   const [searchParams] = useSearchParams();
-  const { property, rooms, addBookingEnquiry, openWhatsApp } = useHotel();
+  const { 
+    property, 
+    rooms, 
+    addBookingEnquiry, 
+    openWhatsApp, 
+    user, 
+    loginAsGuest,
+    setIsAuthModalOpen, 
+    checkRoomConflict, 
+    showToast 
+  } = useHotel();
 
   const paramCheckIn = searchParams.get('checkIn');
   const paramCheckOut = searchParams.get('checkOut');
@@ -28,9 +42,9 @@ export default function BookingPage() {
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
   const [formData, setFormData] = useState({
-    fullName: '',
-    phone: '',
-    email: '',
+    fullName: user ? (user.isGuest ? `Guest ${user.guestId}` : user.name || '') : '',
+    phone: user?.phone || '',
+    email: user?.email || '',
     checkIn: paramCheckIn || today,
     checkOut: paramCheckOut || tomorrow,
     adults: paramAdults || '2',
@@ -40,6 +54,18 @@ export default function BookingPage() {
   });
 
   const [submittedEnquiry, setSubmittedEnquiry] = useState(null);
+
+  // Sync user info into form if logged in
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: prev.fullName || (user.isGuest ? `Guest ${user.guestId}` : user.name || ''),
+        phone: prev.phone || user.phone || '',
+        email: prev.email || user.email || ''
+      }));
+    }
+  }, [user]);
 
   useEffect(() => {
     if (paramRoom) setFormData(prev => ({ ...prev, roomCategory: paramRoom }));
@@ -59,6 +85,13 @@ export default function BookingPage() {
   const totalNights = calculateNights();
   const estimatedTotal = (selectedRoomObj?.pricePerNight || 3000) * totalNights;
 
+  // Real-time Date Conflict Validation
+  const dateConflict = checkRoomConflict(
+    selectedRoomObj?.roomNumber || selectedRoomObj?.id || formData.roomCategory,
+    formData.checkIn,
+    formData.checkOut
+  );
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -66,8 +99,41 @@ export default function BookingPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Prevent submission if date conflict exists
+    if (dateConflict) {
+      showToast('Selected room is already booked for these dates. Please choose other dates or another room.', 'error');
+      return;
+    }
+
+    if (new Date(formData.checkOut) <= new Date(formData.checkIn)) {
+      showToast('Check-out date must be strictly after Check-in date.', 'error');
+      return;
+    }
+
+    // If user is not logged in, prompt auth or guest login
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     const enquiry = await addBookingEnquiry({
       ...formData,
+      nights: totalNights,
+      estimatedTariff: estimatedTotal
+    });
+    setSubmittedEnquiry(enquiry);
+  };
+
+  const handleQuickGuestSubmit = async () => {
+    if (dateConflict) {
+      showToast('Selected room is already booked for these dates.', 'error');
+      return;
+    }
+    const guest = loginAsGuest();
+    const enquiry = await addBookingEnquiry({
+      ...formData,
+      fullName: formData.fullName || `Guest ${guest.guestId}`,
       nights: totalNights,
       estimatedTariff: estimatedTotal
     });
@@ -120,19 +186,26 @@ export default function BookingPage() {
           <div className="lg:col-span-8">
             {submittedEnquiry ? (
               <div className="minimal-card p-8 sm:p-10 border-emerald-300 bg-white space-y-5 animate-fadeIn">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-6 h-6" />
+                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-7 h-7" />
                 </div>
 
                 <div className="text-center space-y-1.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-3 py-0.5 rounded-full border border-emerald-200">
-                    Enquiry ID: {submittedEnquiry.id}
-                  </span>
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-3 py-0.5 rounded-full border border-emerald-200">
+                      Booking Reference: {submittedEnquiry.id}
+                    </span>
+                    {submittedEnquiry.guestId && (
+                      <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                        Guest: {submittedEnquiry.guestId}
+                      </span>
+                    )}
+                  </div>
                   <h2 className="font-serif text-2xl sm:text-3xl font-bold text-obsidian">
-                    Booking Enquiry Received
+                    Reservation Confirmed & Synced
                   </h2>
                   <p className="text-xs sm:text-sm text-obsidian-600 max-w-md mx-auto leading-relaxed">
-                    Thank you, <strong>{submittedEnquiry.fullName}</strong>. Our reservations desk has logged your request for the <strong>{submittedEnquiry.roomCategory}</strong>.
+                    Thank you, <strong>{submittedEnquiry.fullName}</strong>. Your reservation for <strong>{submittedEnquiry.roomCategory}</strong> ({submittedEnquiry.checkIn} to {submittedEnquiry.checkOut}) has been dispatched to the front desk PMS.
                   </p>
                 </div>
 
@@ -140,7 +213,7 @@ export default function BookingPage() {
                 <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 leading-relaxed flex items-start gap-2.5">
                   <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                   <div>
-                    <strong>Verification Notice:</strong> All booking enquiries are subject to manual confirmation of availability by our front desk. We will call you on <strong>{submittedEnquiry.phone}</strong> or send a message shortly to confirm your reservation and share booking terms.
+                    <strong>Front Desk Sync Confirmation:</strong> Your booking is logged in the live hotel PMS. You may track your booking status anytime under <strong>"My Bookings"</strong> in the top navigation using your phone number or Guest ID.
                   </div>
                 </div>
 
@@ -162,15 +235,96 @@ export default function BookingPage() {
                 </div>
               </div>
             ) : (
-              <div className="minimal-card p-6 sm:p-8">
-                <div className="border-b border-stone-200 pb-3 mb-6">
+              <div className="minimal-card p-6 sm:p-8 space-y-6">
+                <div className="border-b border-stone-200 pb-3">
                   <h2 className="font-serif text-2xl font-bold text-obsidian">
-                    Reservation Enquiry Form
+                    Direct Room Reservation Form
                   </h2>
                   <p className="text-xs text-obsidian-500 mt-1">
-                    Fill in your travel dates and preferences. No immediate payment is required; our team will verify room availability and confirm with you directly.
+                    Select your travel dates and preferred room. Live inventory updates in real-time.
                   </p>
                 </div>
+
+                {/* User Session Banner / Fast-Track Login Bar */}
+                <div className="p-4 rounded-2xl border bg-stone-50/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                  {user ? (
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-gold/20 text-gold-dark flex items-center justify-center font-bold text-xs shrink-0">
+                        {user.isGuest ? 'G' : (user.name?.[0] || 'U')}
+                      </div>
+                      <div>
+                        <div className="font-bold text-obsidian flex items-center gap-1.5">
+                          <span>{user.name}</span>
+                          <span className="text-[10px] text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded-full">
+                            {user.isGuest ? `Guest: ${user.guestId}` : 'Verified Account'}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-stone-500">
+                          {user.phone ? `Mobile: +91 ${user.phone}` : 'Guest session active'} &bull; Details auto-filled
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center shrink-0">
+                        <User className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-obsidian">
+                          Fast-Track Checkout
+                        </div>
+                        <div className="text-[11px] text-stone-500">
+                          Sign in with Mobile OTP or continue as Express Guest
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {!user ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setIsAuthModalOpen(true)}
+                          className="px-3 py-1.5 rounded-xl bg-gold text-white font-bold text-xs hover:bg-gold-dark transition shadow-2xs"
+                        >
+                          Sign In with OTP
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleQuickGuestSubmit}
+                          className="px-3 py-1.5 rounded-xl bg-white border border-stone-300 font-bold text-xs text-stone-700 hover:bg-stone-100 transition shadow-2xs"
+                        >
+                          Continue as Guest
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setIsAuthModalOpen(true)}
+                        className="text-[11px] text-gold-dark hover:underline font-bold"
+                      >
+                        Switch Account
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Date Conflict Alert Banner */}
+                {dateConflict && (
+                  <div className="p-4 rounded-2xl bg-rose-50 border-2 border-rose-300 text-rose-900 text-xs flex items-start gap-3 shadow-2xs animate-in fade-in">
+                    <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-extrabold text-rose-800 text-sm">
+                        Room Unavailable for Selected Dates
+                      </div>
+                      <p className="mt-1 leading-relaxed">
+                        <strong>{formData.roomCategory}</strong> is already booked from <strong>{dateConflict.check_in || dateConflict.checkIn}</strong> to <strong>{dateConflict.check_out || dateConflict.checkOut}</strong>.
+                        Please adjust your check-in/out dates or select another room category below.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -232,7 +386,9 @@ export default function BookingPage() {
                         value={formData.checkIn}
                         min={today}
                         onChange={handleChange}
-                        className="w-full px-3.5 py-2.5 rounded-xl minimal-input text-xs sm:text-sm text-obsidian"
+                        className={`w-full px-3.5 py-2.5 rounded-xl minimal-input text-xs sm:text-sm text-obsidian ${
+                          dateConflict ? 'border-rose-400 bg-rose-50/20' : ''
+                        }`}
                         required
                       />
                     </div>
@@ -248,7 +404,9 @@ export default function BookingPage() {
                         value={formData.checkOut}
                         min={formData.checkIn}
                         onChange={handleChange}
-                        className="w-full px-3.5 py-2.5 rounded-xl minimal-input text-xs sm:text-sm text-obsidian"
+                        className={`w-full px-3.5 py-2.5 rounded-xl minimal-input text-xs sm:text-sm text-obsidian ${
+                          dateConflict ? 'border-rose-400 bg-rose-50/20' : ''
+                        }`}
                         required
                       />
                     </div>
@@ -327,9 +485,20 @@ export default function BookingPage() {
                   <div className="pt-2">
                     <button
                       type="submit"
-                      className="w-full py-3.5 px-6 rounded-xl minimal-btn-gold text-xs sm:text-sm font-semibold flex items-center justify-center gap-2"
+                      disabled={Boolean(dateConflict)}
+                      className={`w-full py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-md ${
+                        dateConflict
+                          ? 'bg-stone-300 text-stone-500 cursor-not-allowed'
+                          : 'minimal-btn-gold text-white'
+                      }`}
                     >
-                      <span>Send Booking Enquiry</span>
+                      {dateConflict ? (
+                        <span>⚠️ Dates Unavailable for This Room</span>
+                      ) : !user ? (
+                        <span>Proceed to Book (Phone OTP / Guest Checkout)</span>
+                      ) : (
+                        <span>Confirm Reservation as {user.name}</span>
+                      )}
                     </button>
                   </div>
                 </form>

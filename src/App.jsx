@@ -1,10 +1,23 @@
 import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { HotelProvider } from './context/HotelContext';
+import { HotelProvider, useHotel } from './context/HotelContext';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import StickyContactBar from './components/layout/StickyContactBar';
 import Toast from './components/common/Toast';
+import UserAuthModal from './components/auth/UserAuthModal';
+import MyBookingsModal from './components/booking/MyBookingsModal';
+
+// Global Modals component
+function GlobalModals() {
+  const { isAuthModalOpen, setIsAuthModalOpen, isMyBookingsOpen, setIsMyBookingsOpen } = useHotel();
+  return (
+    <>
+      <UserAuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <MyBookingsModal isOpen={isMyBookingsOpen} onClose={() => setIsMyBookingsOpen(false)} />
+    </>
+  );
+}
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -37,6 +50,7 @@ export default function App() {
         <div className="flex flex-col min-h-screen bg-cream-100 text-obsidian font-sans antialiased selection:bg-gold/20 selection:text-gold-dark">
           <Navbar />
           <Toast />
+          <GlobalModals />
           <main className="flex-1">
             <Routes>
               <Route path="/" element={<Home />} />
