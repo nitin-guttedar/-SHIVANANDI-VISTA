@@ -1,10 +1,20 @@
-import React from 'react';
-import { HashRouter, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { HotelProvider } from './context/HotelContext';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import StickyContactBar from './components/layout/StickyContactBar';
 import Toast from './components/common/Toast';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [pathname]);
+
+  return null;
+}
 
 // 9 Core Website Pages + Blog Post + Admin CMS
 import Home from './pages/Home';
@@ -23,6 +33,7 @@ export default function App() {
   return (
     <HotelProvider>
       <HashRouter>
+        <ScrollToTop />
         <div className="flex flex-col min-h-screen bg-cream-100 text-obsidian font-sans antialiased selection:bg-gold/20 selection:text-gold-dark">
           <Navbar />
           <Toast />

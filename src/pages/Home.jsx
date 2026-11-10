@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Sparkles,
@@ -29,23 +29,23 @@ export default function Home() {
     ? gallery
     : gallery.filter(g => g.category === selectedGalleryCategory);
 
-  const homeSchema = {
-    "@context": "https://schema.org",
-    "@type": "Hotel",
-    "name": property.name,
-    "description": "Premium hotel and resort near Bengaluru International Airport (BLR). Offering comfortable rooms, hospitality, and swift airport transit.",
-    "telephone": property.phone,
-    "email": property.email,
-    "logo": "https://shivanandivista.com/logo.jpg",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "No.15, RD Greenwoods, I Phase, Begur, BK Halli Post",
-      "addressLocality": "Near Bengaluru International Airport, Begur, BK Halli",
-      "addressRegion": "Karnataka",
-      "postalCode": "562149",
-      "addressCountry": "IN"
-    }
-  };
+    const homeSchema = useMemo(() => ({
+      "@context": "https://schema.org",
+      "@type": "Hotel",
+      "name": property.name,
+      "description": "Premium hotel and resort near Bengaluru International Airport (BLR). Offering comfortable rooms, hospitality, and swift airport transit.",
+      "telephone": property.phone,
+      "email": property.email,
+      "logo": "https://shivanandivista.com/logo.jpg",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "No.15, RD Greenwoods, I Phase, Begur, BK Halli Post",
+        "addressLocality": "Near Bengaluru International Airport, Begur, BK Halli",
+        "addressRegion": "Karnataka",
+        "postalCode": "562149",
+        "addressCountry": "IN"
+      }
+  }), [property.name, property.phone, property.email]);
 
   return (
     <>
@@ -336,9 +336,13 @@ export default function Home() {
               {galleryCategories.map((cat) => (
                 <button
                   key={cat}
-                  onClick={() => setSelectedGalleryCategory(cat)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${selectedGalleryCategory === cat
-                    ? 'bg-obsidian text-white'
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSelectedGalleryCategory(cat);
+                  }}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${selectedGalleryCategory === cat
+                    ? 'bg-obsidian text-white shadow-sm'
                     : 'bg-white text-obsidian-600 border border-stone-200 hover:bg-stone-warm'
                     }`}
                 >

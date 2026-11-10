@@ -49,15 +49,12 @@ export default function SEO({
         schemaScript.type = 'application/ld+json';
         document.head.appendChild(schemaScript);
       }
-      schemaScript.textContent = JSON.stringify(schema);
+      schemaScript.textContent = typeof schema === 'string' ? schema : JSON.stringify(schema);
     } else if (schemaScript) {
       schemaScript.remove();
     }
+  }, [title, description, keywords, canonicalUrl, typeof schema === 'string' ? schema : JSON.stringify(schema)]);
 
-    // Scroll to top on route change
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [title, description, keywords, canonicalUrl, schema]);
-
-  return null;
+return null;
 }
 
