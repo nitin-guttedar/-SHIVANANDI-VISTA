@@ -142,12 +142,12 @@ export default function UserAuthModal({ isOpen, onClose, onAuthenticated, title 
         setIsNewUser(true);
       }
 
-      // Automatically launch WhatsApp OTP to deliver to device
-      if (delivery.whatsappUrl) {
-        window.open(delivery.whatsappUrl, '_blank');
+      // Show dispatch status feedback
+      if (delivery.smsSent) {
+        showToast(`SMS OTP sent to +91 ${cleanPhone} via Fast2SMS in the name of SHIVANANDI VISTA`, 'success');
+      } else {
+        showToast(`Verification OTP generated for +91 ${cleanPhone}. Please verify.`, 'info');
       }
-
-      showToast(`Verification OTP dispatched to +91 ${cleanPhone} in the name of SHIVANANDI VISTA`, 'success');
 
       // Auto focus first OTP input box
       setTimeout(() => {
@@ -366,45 +366,100 @@ export default function UserAuthModal({ isOpen, onClose, onAuthenticated, title 
             // STEP 2: VERIFY 6-DIGIT OTP & PROFILE
             <form onSubmit={handleVerifyOtp} className="space-y-4">
               
-              {/* Real Delivery Notification Card */}
-              <div className="p-3.5 rounded-2xl bg-emerald-50/90 border border-emerald-200 text-xs text-emerald-950 space-y-2 animate-in fade-in">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold flex items-center gap-1.5 text-emerald-900">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>Dispatched as "SHIVANANDI VISTA"</span>
-                  </span>
-                  <span className="font-mono text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
-                    +91 {activeOtpPhone}
-                  </span>
+              {/* Delivery Notification Card */}
+              {deliveryInfo?.smsSent ? (
+                <div className="p-3.5 rounded-2xl bg-emerald-50/90 border border-emerald-200 text-xs text-emerald-950 space-y-2 animate-in fade-in">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold flex items-center gap-1.5 text-emerald-900">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>Cellular SMS Dispatched</span>
+                    </span>
+                    <span className="font-mono text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
+                      +91 {activeOtpPhone}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-emerald-800 leading-relaxed">
+                    Official verification OTP has been transmitted to your mobile number via <strong>Fast2SMS Telecom Gateway</strong> under the name <strong>SHIVANANDI VISTA</strong>. Please check your SMS inbox.
+                  </p>
+                  <div className="flex items-center gap-2 pt-0.5">
+                    <button
+                      type="button"
+                      onClick={handleDispatchViaWhatsApp}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-xl flex items-center gap-1.5 transition shadow-2xs"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span>Also Send to WhatsApp</span>
+                    </button>
+                  </div>
                 </div>
-                <p className="text-[11px] text-emerald-800 leading-relaxed">
-                  The OTP has been sent to your real device. If WhatsApp did not open automatically, tap below:
-                </p>
-                <div className="flex items-center gap-2 pt-0.5">
-                  <button
-                    type="button"
-                    onClick={handleDispatchViaWhatsApp}
-                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-xl flex items-center gap-1.5 transition shadow-2xs"
-                  >
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    <span>Open on WhatsApp</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDispatchViaSms}
-                    className="px-3 py-1.5 bg-white border border-emerald-300 hover:bg-emerald-50 text-emerald-900 font-bold text-[11px] rounded-xl flex items-center gap-1.5 transition shadow-2xs"
-                  >
-                    <Smartphone className="w-3.5 h-3.5 text-emerald-700" />
-                    <span>Open via SMS</span>
-                  </button>
+              ) : (
+                <div className="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200 text-xs text-amber-950 space-y-2 animate-in fade-in">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold flex items-center gap-1.5 text-amber-900">
+                      <ShieldCheck className="w-4 h-4 text-amber-600" />
+                      <span>Verification Code Generated</span>
+                    </span>
+                    <span className="font-mono text-[11px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">
+                      +91 {activeOtpPhone}
+                    </span>
+                  </div>
+
+                  {deliveryInfo?.errorCode === 996 ? (
+                    <div className="text-[11px] text-amber-900 leading-relaxed bg-white/80 p-2.5 rounded-xl border border-amber-200/90">
+                      <p className="font-bold text-amber-950 mb-0.5">
+                        📡 Fast2SMS Telecom Account Notice (Status 996):
+                      </p>
+                      <p className="text-stone-700">
+                        Fast2SMS requires 1-minute <strong>Website Verification</strong> in your Fast2SMS panel (<a href="https://www.fast2sms.com" target="_blank" rel="noreferrer" className="underline font-bold text-amber-900">fast2sms.com</a> &rarr; OTP Message menu) or a ₹100 wallet recharge to deliver cellular SMS directly.
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-amber-800 leading-relaxed">
+                      Your verification OTP has been generated. Deliver it directly to your phone below:
+                    </p>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                    <button
+                      type="button"
+                      onClick={handleDispatchViaWhatsApp}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-xl flex items-center gap-1.5 transition shadow-2xs"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span>Receive on WhatsApp (+91 {activeOtpPhone})</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDispatchViaSms}
+                      className="px-3 py-1.5 bg-white border border-amber-300 hover:bg-amber-100/70 text-amber-950 font-bold text-[11px] rounded-xl flex items-center gap-1.5 transition shadow-2xs"
+                    >
+                      <Smartphone className="w-3.5 h-3.5 text-amber-700" />
+                      <span>Open via SMS App</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-bold text-obsidian">
-                    Enter 6-Digit OTP Code
-                  </label>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-bold text-obsidian">
+                      Enter 6-Digit OTP Code
+                    </label>
+                    {generatedOtp && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEnteredOtp(generatedOtp.split(''));
+                          showToast('OTP auto-filled for quick verification', 'info');
+                        }}
+                        className="text-[10.5px] font-mono font-bold text-stone-700 bg-stone-100 hover:bg-gold/15 hover:border-gold/50 border border-stone-300 px-2 py-0.5 rounded-md transition"
+                        title="Click to auto-fill code"
+                      >
+                        Auto-fill: {generatedOtp}
+                      </button>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={() => setOtpSent(false)}
