@@ -64,9 +64,9 @@ export default function BookingPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const enquiry = addBookingEnquiry({
+    const enquiry = await addBookingEnquiry({
       ...formData,
       nights: totalNights,
       estimatedTariff: estimatedTotal
