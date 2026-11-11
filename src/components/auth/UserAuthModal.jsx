@@ -10,7 +10,6 @@ import {
   CheckCircle2, 
   Sparkles,
   AlertTriangle,
-  Database,
   KeyRound
 } from 'lucide-react';
 import { useHotel } from '../../context/HotelContext';
@@ -131,7 +130,7 @@ export default function UserAuthModal({ isOpen, onClose, onAuthenticated, title 
       });
 
       loginWithPhoneOtp(userProfile);
-      showToast(`Welcome, ${userProfile.name}! Signed in via Supabase.`, 'success');
+      showToast(`Welcome, ${userProfile.name}! Signed in successfully.`, 'success');
       if (onAuthenticated) onAuthenticated(userProfile);
       onClose();
 
@@ -162,7 +161,7 @@ export default function UserAuthModal({ isOpen, onClose, onAuthenticated, title 
       );
 
       loginWithPhoneOtp(profile);
-      showToast(`Welcome, ${profile.name}! Signed in via Supabase.`, 'success');
+      showToast(`Welcome, ${profile.name}! Signed in successfully.`, 'success');
       if (onAuthenticated) onAuthenticated(profile);
       onClose();
 
@@ -184,9 +183,9 @@ export default function UserAuthModal({ isOpen, onClose, onAuthenticated, title 
         <div className="bg-[#141210] text-white px-6 py-5 flex items-center justify-between relative">
           <div>
             <div className="flex items-center gap-1.5">
-              <Database className="w-4 h-4 text-emerald-400" />
-              <span className="text-[10px] tracking-[0.2em] font-bold uppercase text-emerald-400">
-                SUPABASE CLOUD AUTHENTICATION
+              <ShieldCheck className="w-4 h-4 text-gold" />
+              <span className="text-[10px] tracking-[0.2em] font-bold uppercase text-gold">
+                SHIVANANDI VISTA GUEST PORTAL
               </span>
             </div>
             <h2 className="font-serif text-xl font-bold text-white mt-0.5">
@@ -274,7 +273,7 @@ export default function UserAuthModal({ isOpen, onClose, onAuthenticated, title 
                 {isLookingUp && (
                   <div className="mt-2 text-[11px] text-stone-500 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-gold animate-ping" />
-                    <span>Verifying guest profile in Supabase...</span>
+                    <span>Finding your guest account...</span>
                   </div>
                 )}
 
@@ -285,7 +284,7 @@ export default function UserAuthModal({ isOpen, onClose, onAuthenticated, title 
                     <div>
                       <span className="font-bold">Welcome back, {fullName}!</span>
                       <span className="text-emerald-700 block text-[10.5px]">
-                        Registered Supabase guest record recognized.
+                        Your guest profile is ready for quick sign-in.
                       </span>
                     </div>
                   </div>
@@ -342,15 +341,15 @@ export default function UserAuthModal({ isOpen, onClose, onAuthenticated, title 
                 <CheckCircle2 className="w-4 h-4" />
                 <span>
                   {isSubmitting 
-                    ? 'Authenticating with Supabase...' 
+                    ? 'Signing in...' 
                     : isExistingGuest 
                     ? `Sign In as ${fullName || 'Guest'}` 
-                    : 'Register & Continue via Supabase'}
+                    : 'Register & Continue'}
                 </span>
               </button>
 
               <p className="text-[11px] text-stone-500 text-center leading-relaxed">
-                Instant authentication synced directly with the SHIVANANDI VISTA front desk database.
+                Direct booking advantage with best rates guaranteed and 24/7 front desk support.
               </p>
             </form>
           ) : (
@@ -447,7 +446,7 @@ export default function UserAuthModal({ isOpen, onClose, onAuthenticated, title 
                   {isSubmitting 
                     ? 'Processing...' 
                     : emailAuthMode === 'signup' 
-                    ? 'Create Supabase Account' 
+                    ? 'Create Account' 
                     : 'Sign In with Email'}
                 </span>
               </button>
@@ -484,7 +483,7 @@ export default function UserAuthModal({ isOpen, onClose, onAuthenticated, title 
         {/* Modal Footer Note */}
         <div className="px-6 py-3.5 bg-stone-50 border-t border-stone-200 text-center text-[10.5px] text-stone-500 flex items-center justify-center gap-1.5">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Realtime Supabase Cloud Database &bull; SSL Encrypted</span>
+          <span>Official Guest Portal &bull; 24/7 Front Desk Support</span>
         </div>
 
       </div>

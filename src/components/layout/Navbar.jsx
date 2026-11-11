@@ -176,7 +176,7 @@ export default function Navbar() {
                     >
                       <div className="px-4 py-2 border-b border-stone-100">
                         <div className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">
-                          Verified Mobile Account
+                          Guest Account
                         </div>
                         <div className="font-bold text-obsidian text-xs mt-0.5 truncate">
                           {user.name}

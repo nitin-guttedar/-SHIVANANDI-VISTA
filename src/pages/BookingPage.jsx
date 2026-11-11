@@ -230,10 +230,10 @@ export default function BookingPage() {
                     </span>
                   </div>
                   <h2 className="font-serif text-2xl sm:text-3xl font-bold text-obsidian">
-                    Reservation Confirmed & Synced
+                    Reservation Confirmed
                   </h2>
                   <p className="text-xs sm:text-sm text-obsidian-600 max-w-md mx-auto leading-relaxed">
-                    Thank you, <strong>{submittedEnquiry.fullName}</strong>. Your reservation for <strong>{submittedEnquiry.roomCategory}</strong> ({submittedEnquiry.checkIn} to {submittedEnquiry.checkOut}) has been confirmed and synced to the front desk PMS.
+                    Thank you, <strong>{submittedEnquiry.fullName}</strong>. Your reservation for <strong>{submittedEnquiry.roomCategory}</strong> ({submittedEnquiry.checkIn} to {submittedEnquiry.checkOut}) has been confirmed with our front desk team.
                   </p>
                 </div>
 
@@ -241,7 +241,7 @@ export default function BookingPage() {
                 <div className="p-4 rounded-xl bg-emerald-50/80 border border-emerald-200 text-xs text-emerald-950 leading-relaxed flex items-start gap-2.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
                   <div>
-                    <strong>Verified Booking Confirmed:</strong> Your stay details are logged in the live hotel database. You can review your booking status anytime in <strong>"My Bookings"</strong> using your verified mobile number <strong>+91 {submittedEnquiry.phone}</strong>.
+                    <strong>Confirmed Booking:</strong> Your stay details are confirmed with our front desk team. You can review your reservation details anytime in <strong>"My Bookings"</strong> using your mobile number <strong>+91 {submittedEnquiry.phone}</strong>.
                   </div>
                 </div>
 
@@ -269,7 +269,7 @@ export default function BookingPage() {
                     Direct Room Reservation Form
                   </h2>
                   <p className="text-xs text-obsidian-500 mt-1">
-                    Select your travel dates and preferred room. Your booking and profile sync live to the Supabase front desk database.
+                    Select your travel dates and preferred room to book directly with best rates guaranteed.
                   </p>
                 </div>
 
@@ -525,7 +525,7 @@ export default function BookingPage() {
                       ) : isPhoneVerified ? (
                         <span>Confirm Reservation as {user.name}</span>
                       ) : (
-                        <span>Confirm Reservation & Sign In via Supabase</span>
+                        <span>Confirm Reservation</span>
                       )}
                     </button>
                   </div>

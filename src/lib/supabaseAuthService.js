@@ -137,3 +137,4 @@ export async function authenticateWithEmailPassword(email, password, isSignUp = 
     return userProfile;
   }
 }
+
