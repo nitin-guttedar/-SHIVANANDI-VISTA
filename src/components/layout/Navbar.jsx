@@ -28,6 +28,14 @@ export default function Navbar() {
   } = useHotel();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const handleOpenMyBookings = () => {
+    if (!user) {
+      if (showToast) showToast('Please sign in to view your bookings and stay history.', 'info');
+      setIsAuthModalOpen(true);
+    } else {
+      setIsMyBookingsOpen(true);
+    }
+  };
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
 
@@ -145,7 +153,7 @@ export default function Navbar() {
             <div className="hidden sm:flex items-center gap-2.5">
               {/* My Bookings Button */}
               <button
-                onClick={() => setIsMyBookingsOpen(true)}
+                onClick={handleOpenMyBookings}
                 className="px-3 py-2 rounded-xl text-xs font-semibold text-stone-700 hover:text-obsidian hover:bg-stone-100 border border-stone-200 transition flex items-center gap-1.5"
                 title="View my reservations"
               >
@@ -189,7 +197,7 @@ export default function Navbar() {
                       </div>
 
                       <button
-                        onClick={() => setIsMyBookingsOpen(true)}
+                        onClick={handleOpenMyBookings}
                         className="w-full px-4 py-2 text-left text-xs text-stone-700 hover:bg-stone-50 flex items-center gap-2 font-medium"
                       >
                         <Ticket className="w-3.5 h-3.5 text-gold" />
@@ -236,7 +244,7 @@ export default function Navbar() {
             {/* Mobile Actions & Hamburger */}
             <div className="flex items-center gap-2 lg:hidden">
               <button
-                onClick={() => setIsMyBookingsOpen(true)}
+                onClick={handleOpenMyBookings}
                 className="p-2 rounded-xl border border-stone-200 text-stone-700"
                 title="My Bookings"
               >
@@ -320,7 +328,7 @@ export default function Navbar() {
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  setIsMyBookingsOpen(true);
+                  handleOpenMyBookings();
                 }}
                 className="w-full text-left block px-4 py-2.5 rounded-xl text-sm font-medium text-stone-700 hover:bg-stone-warm"
               >

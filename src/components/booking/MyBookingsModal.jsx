@@ -25,7 +25,8 @@ export default function MyBookingsModal({ isOpen, onClose }) {
     bookingEnquiries = [], 
     openWhatsApp,
     property,
-    cancelBooking
+    cancelBooking,
+    setIsAuthModalOpen
   } = useHotel();
 
   const [searchQuery, setSearchQuery] = useState(user?.phone || '');
@@ -104,29 +105,30 @@ export default function MyBookingsModal({ isOpen, onClose }) {
   });
   const uniqueBookings = Array.from(uniqueBookingsMap.values());
 
-  // Filter bookings based on active user or search query
+  // Filter bookings: STRICTLY private to the logged in guest
   const filteredBookings = uniqueBookings.filter(b => {
-    if (!searchQuery.trim()) {
-      // If user is logged in, show their bookings by phone, email or name
-      if (user) {
-        if (user.phone && b.phone && b.phone.includes(user.phone.slice(-8))) return true;
-        if (user.email && b.email && b.email.toLowerCase() === user.email.toLowerCase()) return true;
-        if (user.name && b.guest && b.guest.toLowerCase().includes(user.name.toLowerCase())) return true;
-        return false;
-      }
-      return true; // Show all if no filter
+    // If not logged in, NEVER reveal any bookings
+    if (!user) return false;
+
+    // Must match the logged-in user's phone or email
+    const userPhoneClean = String(user.phone || '').replace(/\D/g, '').slice(-10);
+    const bookingPhoneClean = String(b.phone || '').replace(/\D/g, '').slice(-10);
+    const phoneMatch = userPhoneClean && bookingPhoneClean && userPhoneClean === bookingPhoneClean;
+    const emailMatch = user.email && b.email && user.email.toLowerCase().trim() === b.email.toLowerCase().trim();
+
+    if (!phoneMatch && !emailMatch) {
+      return false; // Belongs to another guest, hide completely!
     }
 
-    const q = searchQuery.toLowerCase().trim();
-    const cleanQ = q.replace(/\D/g, '');
+    // Optional: filter inside user's own bookings if searching
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const matchId = b.id && b.id.toLowerCase().includes(q);
+      const matchRoom = b.room && b.room.toLowerCase().includes(q);
+      return matchId || matchRoom;
+    }
 
-    const matchId = b.id && b.id.toLowerCase().includes(q);
-    const matchGuest = b.guest && b.guest.toLowerCase().includes(q);
-    const matchRoom = b.room && b.room.toLowerCase().includes(q);
-    const matchPhone = b.phone && cleanQ && b.phone.replace(/\D/g, '').includes(cleanQ);
-    const matchEmail = b.email && b.email.toLowerCase().includes(q);
-
-    return matchId || matchGuest || matchRoom || matchPhone || matchEmail;
+    return true;
   });
 
   return (
@@ -160,6 +162,7 @@ export default function MyBookingsModal({ isOpen, onClose }) {
         </div>
 
         {/* Search Bar */}
+        {user && (
         <div className="p-4 bg-stone-50 border-b border-stone-200 shrink-0">
           <div className="relative">
             <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -172,19 +175,45 @@ export default function MyBookingsModal({ isOpen, onClose }) {
             />
           </div>
         </div>
+        )}
 
         {/* Bookings List Body */}
         <div className="p-5 overflow-y-auto space-y-4 flex-1">
-          {filteredBookings.length === 0 ? (
-            <div className="text-center py-12 space-y-3">
+          {!user ? (
+            <div className="text-center py-16 px-6 space-y-4 animate-in fade-in">
+              <div className="w-14 h-14 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto shadow-inner">
+                <User className="w-7 h-7" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-serif text-lg font-bold text-obsidian">Guest Sign In Required</h3>
+                <p className="text-xs text-stone-500 max-w-sm mx-auto leading-relaxed">
+                  You are not currently signed in. Please sign in with your verified mobile number or email to view your personal booking records.
+                </p>
+              </div>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (setIsAuthModalOpen) setIsAuthModalOpen(true);
+                  }}
+                  className="minimal-btn-gold text-xs font-bold px-6 py-3 rounded-xl inline-flex items-center gap-2 shadow-md"
+                >
+                  <User className="w-4 h-4" />
+                  <span>Sign In with Mobile or Email</span>
+                </button>
+              </div>
+            </div>
+          ) : filteredBookings.length === 0 ? (
+            <div className="text-center py-12 space-y-3 animate-in fade-in">
               <div className="w-12 h-12 rounded-full bg-stone-100 text-stone-400 flex items-center justify-center mx-auto">
                 <Calendar className="w-6 h-6" />
               </div>
               <h3 className="text-sm font-bold text-obsidian">No Bookings Found</h3>
-              <p className="text-xs text-stone-500 max-w-sm mx-auto">
+              <p className="text-xs text-stone-500 max-w-sm mx-auto leading-relaxed">
                 {searchQuery 
-                  ? `No reservations matching "${searchQuery}". Please check the phone number or reference ID.`
-                  : "You don't have any recorded bookings under this account yet."
+                  ? `No reservations matching "${searchQuery}".`
+                  : "You don't have any recorded bookings under this account yet. When you book a stay, it will appear here."
                 }
               </p>
             </div>
