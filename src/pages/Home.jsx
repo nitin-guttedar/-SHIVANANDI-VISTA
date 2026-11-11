@@ -254,9 +254,15 @@ export default function Home() {
 
           {/* Rooms Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {rooms.slice(0, 3).map((room) => (
-              <RoomCard key={room.id} room={room} />
-            ))}
+            {rooms.length > 0 ? (
+              rooms.slice(0, 3).map((room) => (
+                <RoomCard key={room.id} room={room} />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12 bg-stone-50 rounded-2xl border border-stone-200 p-6 space-y-2">
+                <p className="text-stone-500 text-sm">Room inventory is being updated by front desk. Direct booking available shortly.</p>
+              </div>
+            )}
           </div>
 
           <div className="text-center mt-12">

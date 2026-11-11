@@ -5,7 +5,7 @@ import { useHotel } from '../../context/HotelContext';
 
 export default function BookingWidget({ variant = 'horizontal' }) {
   const navigate = useNavigate();
-  const { rooms, openWhatsApp } = useHotel();
+  const { rooms, openWhatsApp, user, setIsAuthModalOpen, showToast } = useHotel();
 
   const today = new Date().toISOString().split('T')[0];
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
@@ -13,10 +13,16 @@ export default function BookingWidget({ variant = 'horizontal' }) {
   const [checkIn, setCheckIn] = useState(today);
   const [checkOut, setCheckOut] = useState(tomorrow);
   const [adults, setAdults] = useState('2');
-  const [roomCategory, setRoomCategory] = useState(rooms[0]?.title || 'Deluxe Vista Suite');
+  const [roomCategory, setRoomCategory] = useState(rooms[0]?.title || 'Standard Room');
 
   const handleProceed = (e) => {
     e.preventDefault();
+    if (!user) {
+      showToast('Please sign in or register to book your room.', 'info');
+      setIsAuthModalOpen(true);
+      navigate(`/booking?checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&room=${encodeURIComponent(roomCategory)}`);
+      return;
+    }
     navigate(`/booking?checkIn=${checkIn}&checkOut=${checkOut}&adults=${adults}&room=${encodeURIComponent(roomCategory)}`);
   };
 

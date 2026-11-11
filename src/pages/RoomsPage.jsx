@@ -256,15 +256,36 @@ export default function RoomsPage() {
 
       {/* Detailed Rooms List */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
-        {filteredRooms.map((room, index) => (
-          <DetailedRoomCard
-            key={room.id}
-            room={room}
-            index={index}
-            property={property}
-            onWhatsAppEnquiry={handleWhatsAppEnquiry}
-          />
-        ))}
+        {filteredRooms.length > 0 ? (
+          filteredRooms.map((room, index) => (
+            <DetailedRoomCard
+              key={room.id}
+              room={room}
+              index={index}
+              property={property}
+              onWhatsAppEnquiry={handleWhatsAppEnquiry}
+            />
+          ))
+        ) : (
+          <div className="text-center py-20 bg-stone-50 rounded-3xl border border-stone-200 p-8 space-y-4">
+            <div className="w-16 h-16 mx-auto rounded-full bg-gold/10 text-gold flex items-center justify-center">
+              <Bed className="w-8 h-8 text-gold" />
+            </div>
+            <h3 className="font-serif text-xl font-bold text-obsidian">No Rooms Currently Listed</h3>
+            <p className="text-stone-500 text-sm max-w-md mx-auto">
+              The front desk is currently updating live room inventory. Direct booking will be available shortly or contact reservations directly.
+            </p>
+            <div className="pt-2">
+              <button
+                onClick={() => handleWhatsAppEnquiry('Hello SHIVANANDI VISTA, I want to check room availability.')}
+                className="minimal-btn-gold text-xs font-bold px-5 py-3 rounded-xl inline-flex items-center gap-2 shadow-sm"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>Contact Reservations on WhatsApp</span>
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Custom Group Enquiry Box */}

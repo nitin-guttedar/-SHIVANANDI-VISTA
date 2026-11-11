@@ -123,6 +123,13 @@ export default function BookingPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Guest Authentication Gate: Must be logged in to book
+    if (!user) {
+      showToast('Please sign in or register to complete your reservation.', 'info');
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     // Strict Phone Validation
     const phoneVal = validateIndianMobile(formData.phone);
     if (!phoneVal.isValid) {
@@ -281,7 +288,28 @@ export default function BookingPage() {
                 </div>
 
                 {/* Verified Account Status Strip */}
-                {user && (
+                {!user ? (
+                  <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/80 border-2 border-amber-300 text-amber-950 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm animate-in fade-in">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center shrink-0">
+                        <User className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="font-serif font-bold text-sm sm:text-base text-obsidian">Guest Sign In Required</h4>
+                        <p className="text-xs text-stone-600 mt-0.5 leading-relaxed">
+                          Please sign in or register with your mobile number & email to complete your reservation and manage your bookings.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsAuthModalOpen(true)}
+                      className="minimal-btn-gold text-xs font-bold px-4 py-2.5 rounded-xl whitespace-nowrap shadow-sm shrink-0"
+                    >
+                      Sign In / Register
+                    </button>
+                  </div>
+                ) : (
                   <div className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200 flex items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">
@@ -291,11 +319,11 @@ export default function BookingPage() {
                         <div className="font-bold text-emerald-900 flex items-center gap-1.5">
                           <span>{user.name}</span>
                           <span className="text-[10px] bg-emerald-200/80 text-emerald-800 font-bold px-2 py-0.2 rounded-full">
-                            Verified Mobile
+                            Verified Guest
                           </span>
                         </div>
                         <div className="text-[11px] text-emerald-700 font-mono">
-                          +91 {user.phone} &bull; Ready for instant confirmation
+                          +91 {user.phone} &bull; {user.email || 'Email verified'}
                         </div>
                       </div>
                     </div>
@@ -305,7 +333,7 @@ export default function BookingPage() {
                       onClick={() => setIsAuthModalOpen(true)}
                       className="text-[11px] text-gold-dark hover:underline font-bold shrink-0"
                     >
-                      Change Number
+                      Switch Account
                     </button>
                   </div>
                 )}
@@ -516,25 +544,37 @@ export default function BookingPage() {
                   </div>
 
                   <div className="pt-2">
-                    <button
-                      type="submit"
-                      disabled={Boolean(dateConflict) || Boolean(phoneError) || formData.phone.length !== 10}
-                      className={`w-full py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-md ${
-                        dateConflict || Boolean(phoneError) || formData.phone.length !== 10
-                          ? 'bg-stone-300 text-stone-500 cursor-not-allowed'
-                          : 'minimal-btn-gold text-white'
-                      }`}
-                    >
-                      {dateConflict ? (
-                        <span>⚠️ Dates Unavailable for This Room</span>
-                      ) : Boolean(phoneError) || formData.phone.length !== 10 ? (
-                        <span>Enter Valid 10-Digit Mobile Number</span>
-                      ) : isPhoneVerified ? (
-                        <span>Confirm Reservation as {user.name}</span>
-                      ) : (
-                        <span>Confirm Reservation</span>
-                      )}
-                    </button>
+                    {!user ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          showToast('Please sign in or register to complete your reservation.', 'info');
+                          setIsAuthModalOpen(true);
+                        }}
+                        className="w-full py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-md minimal-btn-gold text-white"
+                      >
+                        <User className="w-4 h-4" />
+                        <span>Sign In / Register to Complete Booking</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="submit"
+                        disabled={Boolean(dateConflict) || Boolean(phoneError) || formData.phone.length !== 10}
+                        className={`w-full py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-md ${
+                          dateConflict || Boolean(phoneError) || formData.phone.length !== 10
+                            ? 'bg-stone-300 text-stone-500 cursor-not-allowed'
+                            : 'minimal-btn-gold text-white'
+                        }`}
+                      >
+                        {dateConflict ? (
+                          <span>⚠️ Dates Unavailable for This Room</span>
+                        ) : Boolean(phoneError) || formData.phone.length !== 10 ? (
+                          <span>Enter Valid 10-Digit Mobile Number</span>
+                        ) : (
+                          <span>Confirm & Lock Reservation as {user.name}</span>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </form>
               </div>

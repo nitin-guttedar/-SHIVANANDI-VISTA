@@ -20,7 +20,7 @@ export function HotelProvider({ children }) {
       const saved = localStorage.getItem('sv_rooms');
       if (saved) return JSON.parse(saved);
     } catch (e) { }
-    return INITIAL_ROOMS;
+    return [];
   });
 
   // Live Supabase database rooms and reservations
@@ -189,7 +189,14 @@ export function HotelProvider({ children }) {
           .select('*')
           .order('created_at', { ascending: false });
 
-        if (!roomsErr && roomsData && roomsData.length > 0 && isMounted) {
+        if (!roomsErr && roomsData && isMounted) {
+          setDbRooms(roomsData);
+          setIsLiveSynced(true);
+
+          if (roomsData.length === 0) {
+            setRooms([]);
+            try { localStorage.removeItem("sv_rooms"); } catch(e){}
+          } else {
           setDbRooms(roomsData);
           setIsLiveSynced(true);
 
@@ -248,6 +255,7 @@ export function HotelProvider({ children }) {
             };
           });
           setRooms(mappedRooms);
+          }
         }
 
         if (!resErr && resData && isMounted) {
