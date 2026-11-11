@@ -138,13 +138,22 @@ function DetailedRoomCard({ room, index, property, onWhatsAppEnquiry }) {
 
           {/* Actions */}
           <div className="pt-4 border-t border-stone-200 flex flex-wrap items-center gap-3">
-            <Link
-              to={`/booking?room=${encodeURIComponent(room.title)}`}
-              className="minimal-btn-gold px-6 py-2.5 text-xs sm:text-sm font-semibold flex items-center gap-2"
-            >
-              <Calendar className="w-4 h-4" />
-              <span>Book This Room</span>
-            </Link>
+            {room.status === 'OCCUPIED' ? (
+              <button
+                disabled
+                className="px-6 py-2.5 rounded-xl bg-stone-100 text-stone-500 border border-stone-200 text-xs sm:text-sm font-semibold flex items-center gap-2 cursor-not-allowed"
+              >
+                <span>Currently Reserved {room.bookedUntil ? `until ${room.bookedUntil}` : ''}</span>
+              </button>
+            ) : (
+              <Link
+                to={`/booking?room=${encodeURIComponent(room.title)}`}
+                className="minimal-btn-gold px-6 py-2.5 text-xs sm:text-sm font-semibold flex items-center gap-2"
+              >
+                <Calendar className="w-4 h-4" />
+                <span>Book This Room</span>
+              </Link>
+            )}
 
             <button
               onClick={() => onWhatsAppEnquiry(room)}
