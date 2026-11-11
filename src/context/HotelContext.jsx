@@ -393,6 +393,59 @@ export function HotelProvider({ children }) {
     return newContact;
   };
 
+  // Self-service guest reservation cancellation
+  const cancelBooking = async (bookingId, roomIdentifier) => {
+    try {
+      // 1. Update Supabase reservations table
+      if (isSupabaseConfigured) {
+        await supabase
+          .from('reservations')
+          .update({ status: 'CANCELLED' })
+          .eq('id', bookingId);
+
+        // 2. Unlock and reset room in Supabase rooms table
+        const rMatch = String(roomIdentifier || '').match(/\b(\d+)\b/);
+        if (rMatch) {
+          const rNum = rMatch[1];
+          await supabase
+            .from('rooms')
+            .update({
+              status: 'VACANT_READY',
+              guest: null,
+              booking_id: null,
+              check_out: null
+            })
+            .eq('room_number', rNum);
+        }
+      }
+
+      // 3. Update local state
+      setReservations(prev => prev.map(r => r.id === bookingId ? { ...r, status: 'CANCELLED' } : r));
+      setBookingEnquiries(prev => prev.map(enq => enq.id === bookingId ? { ...enq, status: 'Cancelled' } : enq));
+
+      // 4. Update rooms local state
+      const rMatch = String(roomIdentifier || '').match(/\b(\d+)\b/);
+      if (rMatch) {
+        const rNum = rMatch[1];
+        setRooms(prev => prev.map(rm => String(rm.roomNumber || rm.id) === rNum ? {
+          ...rm,
+          status: 'VACANT_READY',
+          isAvailable: true,
+          badge: 'Available',
+          activeGuest: null,
+          bookedUntil: null
+        } : rm));
+      }
+
+      showToast(`Booking #${bookingId} has been cancelled successfully. Your room has been released.`, 'success');
+      return true;
+    } catch (err) {
+      console.error('Error cancelling reservation:', err);
+      showToast('Failed to cancel reservation. Please contact hotel front desk.', 'error');
+      return false;
+    }
+  };
+
   const updateBookingStatus = (id, status) => {
     setBookingEnquiries(prev =>
       prev.map(enq => (enq.id === id ? { ...enq, status } : enq))
@@ -475,6 +528,7 @@ export function HotelProvider({ children }) {
         checkRoomConflict,
         toast,
         addBookingEnquiry,
+        cancelBooking,
         addContactEnquiry,
         updateBookingStatus,
         updateContactStatus,

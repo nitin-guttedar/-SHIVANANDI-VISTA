@@ -115,9 +115,16 @@ export default function UserAuthModal({ isOpen, onClose, onAuthenticated, title 
       return;
     }
 
-    if (!isExistingGuest && !fullName.trim()) {
-      setPhoneError('Please enter your full name to complete registration.');
-      return;
+    if (!isExistingGuest) {
+      if (!fullName.trim() || fullName.trim().length < 2) {
+        setPhoneError('Please enter your full name to complete registration.');
+        return;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email.trim() || !emailRegex.test(email.trim())) {
+        setPhoneError('Please enter a valid guest email address (e.g. name@example.com).');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -150,6 +157,14 @@ export default function UserAuthModal({ isOpen, onClose, onAuthenticated, title 
 
     try {
       const isSignUp = emailAuthMode === 'signup';
+      if (isSignUp) {
+        const phoneVal = validateIndianMobile(authPhone);
+        if (!phoneVal.isValid) {
+          setAuthError(phoneVal.error || 'Please enter a valid 10-digit Indian mobile number.');
+          setIsSubmitting(false);
+          return;
+        }
+      }
       const profile = await authenticateWithEmailPassword(
         authEmail,
         authPassword,
@@ -313,7 +328,7 @@ export default function UserAuthModal({ isOpen, onClose, onAuthenticated, title 
 
                   <div>
                     <label className="block text-xs font-bold text-obsidian mb-1">
-                      Email Address (Optional)
+                      Email Address <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
                       <Mail className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -323,6 +338,7 @@ export default function UserAuthModal({ isOpen, onClose, onAuthenticated, title 
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="e.g. ramesh@example.com"
                         className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-stone-300 text-xs font-semibold text-obsidian focus:outline-none focus:ring-2 focus:ring-gold/60"
+                        required
                       />
                     </div>
                   </div>
@@ -420,7 +436,7 @@ export default function UserAuthModal({ isOpen, onClose, onAuthenticated, title 
               {emailAuthMode === 'signup' && (
                 <div>
                   <label className="block text-xs font-bold text-obsidian mb-1">
-                    Mobile Number (Optional)
+                    Mobile Number <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
                     <Phone className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -431,6 +447,7 @@ export default function UserAuthModal({ isOpen, onClose, onAuthenticated, title 
                       placeholder="98450 12345"
                       maxLength={10}
                       className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-stone-300 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-gold/60"
+                      required
                     />
                   </div>
                 </div>

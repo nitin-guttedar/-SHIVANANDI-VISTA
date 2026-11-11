@@ -12,7 +12,9 @@ import {
   User, 
   CreditCard,
   Building,
-  Sparkles
+  Sparkles,
+  XCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { useHotel } from '../../context/HotelContext';
 
@@ -22,10 +24,40 @@ export default function MyBookingsModal({ isOpen, onClose }) {
     reservations = [], 
     bookingEnquiries = [], 
     openWhatsApp,
-    property
+    property,
+    cancelBooking
   } = useHotel();
 
   const [searchQuery, setSearchQuery] = useState(user?.phone || '');
+  const [cancellingBookingId, setCancellingBookingId] = useState(null);
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  // Policy: Guest can cancel up to 24 hours (1 day) before check-in date
+  const getCancellationEligibility = (booking) => {
+    const st = String(booking.status || '').toUpperCase();
+    if (st === 'CANCELLED') {
+      return { allowed: false, isCancelled: true, reason: 'Booking has been cancelled.' };
+    }
+    if (st === 'CHECKED_IN' || st === 'CHECKED_OUT') {
+      return { allowed: false, isCancelled: false, reason: 'Already checked in or completed.' };
+    }
+    if (!booking.checkIn) {
+      return { allowed: false, isCancelled: false, reason: 'No check-in date recorded.' };
+    }
+
+    const checkInDate = new Date(booking.checkIn);
+    const now = new Date();
+    // Reset time to compare calendar dates or hours
+    const diffHours = (checkInDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    if (diffHours >= 24) {
+      return { allowed: true, isCancelled: false, hoursLeft: Math.round(diffHours) };
+    } else if (diffHours > 0) {
+      return { allowed: false, isCancelled: false, reason: 'Free cancellation closed (<24h to check-in).' };
+    } else {
+      return { allowed: false, isCancelled: false, reason: 'Past reservation.' };
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -75,9 +107,10 @@ export default function MyBookingsModal({ isOpen, onClose }) {
   // Filter bookings based on active user or search query
   const filteredBookings = uniqueBookings.filter(b => {
     if (!searchQuery.trim()) {
-      // If user is logged in, show their bookings by phone or name
+      // If user is logged in, show their bookings by phone, email or name
       if (user) {
         if (user.phone && b.phone && b.phone.includes(user.phone.slice(-8))) return true;
+        if (user.email && b.email && b.email.toLowerCase() === user.email.toLowerCase()) return true;
         if (user.name && b.guest && b.guest.toLowerCase().includes(user.name.toLowerCase())) return true;
         return false;
       }
@@ -91,8 +124,9 @@ export default function MyBookingsModal({ isOpen, onClose }) {
     const matchGuest = b.guest && b.guest.toLowerCase().includes(q);
     const matchRoom = b.room && b.room.toLowerCase().includes(q);
     const matchPhone = b.phone && cleanQ && b.phone.replace(/\D/g, '').includes(cleanQ);
+    const matchEmail = b.email && b.email.toLowerCase().includes(q);
 
-    return matchId || matchGuest || matchRoom || matchPhone;
+    return matchId || matchGuest || matchRoom || matchPhone || matchEmail;
   });
 
   return (
@@ -243,6 +277,34 @@ export default function MyBookingsModal({ isOpen, onClose }) {
                     </span>
 
                     <div className="flex items-center gap-2">
+                      {(() => {
+                        const cancelPolicy = getCancellationEligibility(b);
+                        if (cancelPolicy.allowed) {
+                          return (
+                            <button
+                              onClick={() => setCancellingBookingId(b.id)}
+                              className="px-3 py-1.5 rounded-lg border border-rose-300 bg-rose-50/50 hover:bg-rose-100 text-rose-700 text-[11px] font-bold flex items-center gap-1.5 transition shadow-2xs"
+                              title="Cancel your reservation (Free cancellation up to 24 hours before check-in)"
+                            >
+                              <XCircle className="w-3.5 h-3.5 text-rose-600" />
+                              <span>Cancel Stay</span>
+                            </button>
+                          );
+                        } else if (cancelPolicy.isCancelled) {
+                          return (
+                            <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded border border-rose-200">
+                              Cancelled
+                            </span>
+                          );
+                        } else if (b.status !== 'CHECKED_OUT') {
+                          return (
+                            <span className="text-[10px] text-stone-400 font-medium" title={cancelPolicy.reason}>
+                              {cancelPolicy.reason}
+                            </span>
+                          );
+                        }
+                        return null;
+                      })()}
                       <button
                         onClick={() => {
                           const msg = `Hello SHIVANANDI VISTA front desk,\n\nI have an enquiry regarding my reservation:\nBooking ID: ${b.id}\nRoom: ${b.room}\nDates: ${b.checkIn} to ${b.checkOut}\nGuest: ${b.guest}\n\nPlease update me on check-in arrangements.`;
@@ -268,6 +330,50 @@ export default function MyBookingsModal({ isOpen, onClose }) {
             })
           )}
         </div>
+
+        {/* Cancellation Confirmation Modal */}
+        {cancellingBookingId && (
+          <div className="fixed inset-0 z-60 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+            <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-stone-200 space-y-4">
+              <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div className="text-center space-y-1">
+                <h3 className="font-serif text-lg font-bold text-obsidian">Cancel Reservation?</h3>
+                <p className="text-xs text-stone-500">
+                  Booking Reference: <strong className="font-mono text-obsidian font-bold">{cancellingBookingId}</strong>
+                </p>
+              </div>
+              <p className="text-xs text-stone-600 bg-stone-50 p-3 rounded-xl border border-stone-200 leading-relaxed text-center">
+                Are you sure you want to cancel this booking? Your room will be immediately released in the hotel inventory.
+              </p>
+              <div className="flex gap-2.5 pt-1">
+                <button
+                  type="button"
+                  disabled={isCancelling}
+                  onClick={async () => {
+                    setIsCancelling(true);
+                    const bObj = allBookings.find(b => b.id === cancellingBookingId);
+                    await cancelBooking(cancellingBookingId, bObj?.room);
+                    setIsCancelling(false);
+                    setCancellingBookingId(null);
+                  }}
+                  className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition shadow-sm disabled:opacity-50"
+                >
+                  {isCancelling ? 'Processing...' : 'Yes, Cancel Stay'}
+                </button>
+                <button
+                  type="button"
+                  disabled={isCancelling}
+                  onClick={() => setCancellingBookingId(null)}
+                  className="px-4 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs rounded-xl transition"
+                >
+                  Keep Booking
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="px-6 py-3.5 bg-stone-50 border-t border-stone-200 flex items-center justify-between shrink-0 text-xs">

@@ -131,6 +131,13 @@ export default function BookingPage() {
       return;
     }
 
+    // Strict Email Validation (genuine email required for guest records)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email || !emailRegex.test(formData.email.trim())) {
+      showToast('Please enter a valid guest email address (e.g. name@example.com).', 'error');
+      return;
+    }
+
     // Date Overlap Validation
     if (dateConflict) {
       showToast('Selected room is already booked for these dates. Please choose other dates or another room.', 'error');
