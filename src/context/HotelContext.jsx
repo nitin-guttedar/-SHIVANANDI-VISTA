@@ -77,11 +77,12 @@ export function HotelProvider({ children }) {
   };
 
   // User auth operations
-  const loginWithPhoneOtp = (userProfile) => {
+  const loginUser = (userProfile) => {
     setUser(userProfile);
     localStorage.setItem('sv_user_session', JSON.stringify(userProfile));
     return userProfile;
   };
+  const loginWithPhoneOtp = loginUser;
 
   const logoutUser = () => {
     setUser(null);
@@ -366,6 +367,7 @@ export function HotelProvider({ children }) {
         contactEnquiries,
         isAdminLoggedIn,
         user,
+        loginUser,
         loginWithPhoneOtp,
         logoutUser,
         isAuthModalOpen,

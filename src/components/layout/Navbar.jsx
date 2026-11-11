@@ -211,8 +211,8 @@ export default function Navbar() {
                   onClick={() => setIsAuthModalOpen(true)}
                   className="px-3.5 py-2 rounded-xl text-xs font-bold text-stone-700 hover:text-obsidian hover:bg-stone-100 border border-stone-300 transition flex items-center gap-1.5"
                 >
-                  <Phone className="w-3.5 h-3.5 text-gold" />
-                  <span>Sign In with Mobile</span>
+                  <User className="w-3.5 h-3.5 text-gold" />
+                  <span>Guest Sign In</span>
                 </button>
               )}
 
@@ -287,8 +287,8 @@ export default function Navbar() {
                   }}
                   className="w-full py-2 px-3 rounded-xl bg-white border border-stone-300 text-xs font-bold text-obsidian flex items-center justify-center gap-2"
                 >
-                  <Phone className="w-4 h-4 text-gold" />
-                  <span>Sign In with Mobile OTP</span>
+                  <User className="w-4 h-4 text-gold" />
+                  <span>Guest Sign In</span>
                 </button>
               )}
 

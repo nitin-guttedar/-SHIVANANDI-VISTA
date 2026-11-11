@@ -19,6 +19,7 @@ import {
 import SEO from '../components/common/SEO';
 import { useHotel } from '../context/HotelContext';
 import { validateIndianMobile } from '../lib/phoneValidation';
+import { authenticateWithPhone } from '../lib/supabaseAuthService';
 
 export default function BookingPage() {
   const [searchParams] = useSearchParams();
@@ -141,15 +142,25 @@ export default function BookingPage() {
       return;
     }
 
-    // If user is not logged in or phone differs, require real OTP verification
-    if (!user || user.phone !== phoneVal.cleanNumber) {
-      showToast('Mobile verification required. Please verify with OTP to complete booking.', 'info');
-      setIsAuthModalOpen(true);
-      return;
+    // Sync / Authenticate guest directly with Supabase
+    let activeUser = user;
+    if (!activeUser || activeUser.phone !== phoneVal.cleanNumber) {
+      try {
+        const guestProfile = await authenticateWithPhone({
+          phone: phoneVal.cleanNumber,
+          name: formData.fullName.trim() || `Guest ${phoneVal.cleanNumber.slice(-4)}`,
+          email: formData.email.trim()
+        });
+        loginWithPhoneOtp(guestProfile);
+        activeUser = guestProfile;
+      } catch (authErr) {
+        console.warn('Guest profile sync warning:', authErr);
+      }
     }
 
     const enquiry = await addBookingEnquiry({
       ...formData,
+      fullName: formData.fullName.trim() || activeUser?.name || 'Guest',
       phone: phoneVal.cleanNumber,
       nights: totalNights,
       estimatedTariff: estimatedTotal
@@ -258,7 +269,7 @@ export default function BookingPage() {
                     Direct Room Reservation Form
                   </h2>
                   <p className="text-xs text-obsidian-500 mt-1">
-                    Select your travel dates and preferred room. Enter your genuine mobile number to receive verification OTP.
+                    Select your travel dates and preferred room. Your booking and profile sync live to the Supabase front desk database.
                   </p>
                 </div>
 
@@ -514,7 +525,7 @@ export default function BookingPage() {
                       ) : isPhoneVerified ? (
                         <span>Confirm Reservation as {user.name}</span>
                       ) : (
-                        <span>Verify Mobile with OTP & Confirm Booking</span>
+                        <span>Confirm Reservation & Sign In via Supabase</span>
                       )}
                     </button>
                   </div>
