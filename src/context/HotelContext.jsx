@@ -502,7 +502,9 @@ export function HotelProvider({ children }) {
 
   // WhatsApp Pre-fill helper
   const openWhatsApp = (customText = '') => {
-    const defaultText = customText || `Hello SHIVANANDI VISTA, I would like to enquire about room availability and booking at your Yelahanka property. Please share details.`;
+    const defaultText =
+      customText ||
+      `Hello SHIVANANDI VISTA, I would like to enquire about room availability and booking at your Begur, BK Halli Post, Near Bengaluru International Airport property. Please share details.`;
     const encoded = encodeURIComponent(defaultText);
     const url = `https://wa.me/${PROPERTY_INFO.whatsappRaw}?text=${encoded}`;
     window.open(url, '_blank');
