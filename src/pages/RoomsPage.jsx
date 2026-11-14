@@ -17,6 +17,11 @@ import { useHotel } from '../context/HotelContext';
 function DetailedRoomCard({ room, index, property, onWhatsAppEnquiry }) {
   const isReversed = index % 2 !== 0;
 
+  const availableCount = typeof room.availableCount === 'number'
+    ? room.availableCount
+    : (room.status === 'OCCUPIED' ? 0 : 1);
+  const isSoldOut = availableCount <= 0 || room.status === 'OCCUPIED';
+
   // Gallery list: ensure the primary image is present
   const galleryImages = room.gallery && room.gallery.length > 0
     ? (room.gallery.includes(room.image) ? room.gallery : [room.image, ...room.gallery])
@@ -45,12 +50,14 @@ function DetailedRoomCard({ room, index, property, onWhatsAppEnquiry }) {
             loading="lazy"
           />
 
-          {room.badge && (
-            <div className="absolute top-4 left-4 bg-white/95 text-obsidian text-xs font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5 z-10">
-              <Sparkles className="w-3.5 h-3.5 text-gold" />
-              <span>{room.badge}</span>
-            </div>
-          )}
+          <div className={`absolute top-4 left-4 text-xs font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5 z-10 ${
+            isSoldOut
+              ? 'bg-rose-100 text-rose-800 border border-rose-300'
+              : 'bg-white/95 text-obsidian'
+          }`}>
+            <Sparkles className={`w-3.5 h-3.5 ${isSoldOut ? 'text-rose-600' : 'text-gold'}`} />
+            <span>{isSoldOut ? 'Sold Out' : `${availableCount} Available`}</span>
+          </div>
 
           {/* Thumbnail strip */}
           {galleryImages && galleryImages.length > 1 && (
@@ -84,9 +91,19 @@ function DetailedRoomCard({ room, index, property, onWhatsAppEnquiry }) {
         <div className={`lg:col-span-7 p-6 sm:p-10 flex flex-col justify-between space-y-6 ${isReversed ? 'lg:order-1' : ''}`}>
           <div>
             <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
-              <h3 className="font-serif text-2xl font-bold text-obsidian">
-                {room.title}
-              </h3>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h3 className="font-serif text-2xl font-bold text-obsidian">
+                  {room.title}
+                </h3>
+                <span className={`text-xs font-bold px-3 py-1 rounded-full border flex items-center gap-1.5 ${
+                  isSoldOut
+                    ? 'bg-rose-50 text-rose-700 border-rose-200'
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                }`}>
+                  <span className={`w-2 h-2 rounded-full ${isSoldOut ? 'bg-rose-500' : 'bg-emerald-500'}`} />
+                  <span>{isSoldOut ? '0 Available' : `${availableCount} Available`}</span>
+                </span>
+              </div>
               <div className="text-right">
                 <span className="text-[10px] uppercase font-bold text-obsidian-500 block">Tariff</span>
                 <div className="text-xl font-bold text-obsidian">
@@ -138,7 +155,7 @@ function DetailedRoomCard({ room, index, property, onWhatsAppEnquiry }) {
 
           {/* Actions */}
           <div className="pt-4 border-t border-stone-200 flex flex-wrap items-center gap-3">
-            {room.status === 'OCCUPIED' ? (
+            {isSoldOut ? (
               <button
                 disabled
                 className="px-6 py-2.5 rounded-xl bg-stone-100 text-stone-500 border border-stone-200 text-xs sm:text-sm font-semibold flex items-center gap-2 cursor-not-allowed"
@@ -182,10 +199,11 @@ export default function RoomsPage() {
   const { rooms, property, openWhatsApp } = useHotel();
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const categories = ['All', 'Suites', 'Executive', 'Family', 'Transit'];
+  const dynamicCategories = Array.from(new Set((rooms || []).map(r => r.title).filter(Boolean)));
+  const categories = ['All', ...dynamicCategories];
   const filteredRooms = selectedCategory === 'All'
     ? rooms
-    : rooms.filter(r => r.category.toLowerCase().includes(selectedCategory.toLowerCase()));
+    : rooms.filter(r => r.title.toLowerCase() === selectedCategory.toLowerCase() || r.category.toLowerCase().includes(selectedCategory.toLowerCase()));
 
   const handleWhatsAppEnquiry = (room) => {
     const text = `Hello SHIVANANDI VISTA, I would like to enquire about room availability and tariffs for "${room.title}". Please share details.`;

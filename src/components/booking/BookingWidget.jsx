@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Users, BedDouble, ArrowRight, MessageSquare } from 'lucide-react';
 import { useHotel } from '../../context/HotelContext';
@@ -14,6 +14,12 @@ export default function BookingWidget({ variant = 'horizontal' }) {
   const [checkOut, setCheckOut] = useState(tomorrow);
   const [adults, setAdults] = useState('2');
   const [roomCategory, setRoomCategory] = useState(rooms[0]?.title || 'Standard Room');
+
+  useEffect(() => {
+    if (rooms.length > 0 && !rooms.some(r => r.title === roomCategory)) {
+      setRoomCategory(rooms[0].title);
+    }
+  }, [rooms, roomCategory]);
 
   const handleProceed = (e) => {
     e.preventDefault();
@@ -99,7 +105,9 @@ export default function BookingWidget({ variant = 'horizontal' }) {
                 className="w-full px-3 py-2.5 rounded-xl minimal-input text-xs font-medium text-obsidian"
               >
                 {rooms.map((r) => (
-                  <option key={r.id} value={r.title}>{r.title}</option>
+                  <option key={r.id} value={r.title}>
+                    {r.title} ({typeof r.availableCount === 'number' ? `${r.availableCount} Available` : 'Available'})
+                  </option>
                 ))}
               </select>
             </div>
@@ -192,7 +200,9 @@ export default function BookingWidget({ variant = 'horizontal' }) {
             className="w-full px-3 py-2.5 rounded-xl minimal-input text-xs font-medium text-obsidian"
           >
             {rooms.map((r) => (
-              <option key={r.id} value={r.title}>{r.title}</option>
+              <option key={r.id} value={r.title}>
+                {r.title} ({typeof r.availableCount === 'number' ? `${r.availableCount} Available` : 'Available'})
+              </option>
             ))}
           </select>
         </div>

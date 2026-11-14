@@ -13,6 +13,39 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const HotelContext = createContext(null);
 
+// Format raw room category/type name into a clean user-facing title without any room numbers
+// e.g. "standard" -> "Standard Room", "Room 101 - standard" -> "Standard Room", "deluxe" -> "Deluxe Room"
+export function formatRoomTypeName(rawName, label = 'Room') {
+  if (!rawName) return 'Standard Room';
+  let cleaned = String(rawName)
+    .replace(/^room\s*#?\s*\d+[a-z]?\s*[-–—:]\s*/i, '')
+    .replace(/\s*[-–—]\s*room\s*#?\s*\d+[a-z]?$/i, '')
+    .replace(/^#\s*\d+[a-z]?\s*[-–—:]?\s*/i, '')
+    .replace(/\broom\s*#?\s*\d+[a-z]?\b/gi, '')
+    .replace(/^[-–—:\s]+|[-–—:\s]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!cleaned || /^\d+$/.test(cleaned)) {
+    return 'Standard Room';
+  }
+
+  // Title-case each word
+  const titled = cleaned
+    .split(' ')
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+
+  // Append "Room" (or category label) if no accommodation suffix word is present
+  const hasTypeSuffix = /\b(room|rooms|suite|suites|villa|villas|cottage|cottages|apartment|apartments|studio|studios|tent|tents|dormitory|cabin|cabins|bungalow|houseboat|penthouse|chalet|loft)\b/i.test(titled);
+  if (!hasTypeSuffix) {
+    const cleanLabel = String(label || 'Room').trim();
+    return `${titled} ${cleanLabel}`;
+  }
+
+  return titled;
+}
+
 async function broadcastVistaSync(payload) {
   if (!isSupabaseConfigured || !supabase) return;
   try {
@@ -110,53 +143,61 @@ export function HotelProvider({ children }) {
     const newOut = new Date(checkOutDate).getTime();
     if (isNaN(newIn) || isNaN(newOut) || newOut <= newIn) return null;
 
-    const cleanNum = String(roomIdentifier || '').match(/\b(\d+)\b/)?.[1] || '';
-    const cleanIdent = String(roomIdentifier || '').toLowerCase();
+    const targetCategory = formatRoomTypeName(roomIdentifier).toLowerCase();
 
-    // 1. If checking a specific room instance with a known room number (e.g., Room 101)
-    if (cleanNum) {
-      return (reservations || []).find(res => {
-        if (res.status === 'CANCELLED' || res.status === 'CHECKED_OUT') return false;
-        const resRoom = String(res.room_number || res.room || '');
-        const match = resRoom.match(/\b(\d+)\b/);
-        const matchesThisRoom = (match && match[1] === cleanNum) || resRoom === cleanNum || resRoom.includes('Room ' + cleanNum);
-        if (!matchesThisRoom) return false;
-
-        const resIn = new Date(res.check_in || res.checkIn).getTime();
-        const resOut = new Date(res.check_out || res.checkOut).getTime();
-        if (isNaN(resIn) || isNaN(resOut)) return false;
-
-        return (newIn < resOut && newOut > resIn);
-      });
-    }
-
-    // 2. If checking by category (e.g. 'Standard Room'), check if ALL rooms in this category are booked
-    const matchingCategoryRooms = (dbRooms && dbRooms.length > 0 ? dbRooms : rooms).filter(r => {
-      const typeStr = (r.type || r.category || '').toLowerCase();
-      return typeStr.includes(cleanIdent) || cleanIdent.includes(typeStr);
+    // Check all physical rooms in this category from dbRooms
+    const matchingCategoryRooms = (dbRooms || []).filter(r => {
+      const rCat = formatRoomTypeName(r.type || r.category || 'Standard Room').toLowerCase();
+      return rCat === targetCategory || rCat.includes(targetCategory) || targetCategory.includes(rCat);
     });
 
     if (matchingCategoryRooms.length > 0) {
+      const todayStr = new Date().toISOString().split('T')[0];
       const freeRoom = matchingCategoryRooms.find(r => {
-        const rNum = String(r.room_number || r.roomNumber || r.id);
-        const hasConflict = (reservations || []).some(res => {
+        const isMaint = r.status === 'MAINTENANCE' || r.status === 'OUT_OF_ORDER' || r.status === 'BLOCKED';
+        if (isMaint) return false;
+
+        const rNum = String(r.room_number || r.roomNumber || r.id).trim();
+        const hasResConflict = (reservations || []).some(res => {
           if (res.status === 'CANCELLED' || res.status === 'CHECKED_OUT') return false;
           const resRoom = String(res.room_number || res.room || '');
-          if (!resRoom.includes(rNum)) return false;
+          const match = resRoom.match(/\b(\d+)\b/);
+          const matchesThisRoom = (match && match[1] === rNum) || resRoom === rNum || resRoom.includes('Room ' + rNum);
+          if (!matchesThisRoom) return false;
           const resIn = new Date(res.check_in || res.checkIn).getTime();
           const resOut = new Date(res.check_out || res.checkOut).getTime();
+          if (isNaN(resIn) || isNaN(resOut)) return false;
           return (newIn < resOut && newOut > resIn);
         });
-        return !hasConflict;
+        if (hasResConflict) return false;
+
+        // If marked OCCUPIED in dbRooms directly without a matching reservation row
+        if (r.status === 'OCCUPIED') {
+          if (r.check_out) {
+            const occOut = new Date(r.check_out).getTime();
+            if (!isNaN(occOut) && newIn < occOut) return false;
+          } else if (checkInDate <= todayStr) {
+            return false;
+          }
+        }
+
+        return true;
       });
 
       if (!freeRoom) {
         return (reservations || []).find(res => {
           if (res.status === 'CANCELLED' || res.status === 'CHECKED_OUT') return false;
+          const resCat = formatRoomTypeName(res.room_type || res.room || '').toLowerCase();
+          if (resCat !== targetCategory && !resCat.includes(targetCategory)) return false;
           const resIn = new Date(res.check_in || res.checkIn).getTime();
           const resOut = new Date(res.check_out || res.checkOut).getTime();
           return (newIn < resOut && newOut > resIn);
-        }) || { room: roomIdentifier, guest: 'Another Guest' };
+        }) || {
+          room: formatRoomTypeName(roomIdentifier),
+          check_in: checkInDate,
+          check_out: checkOutDate,
+          guest: 'Reserved'
+        };
       }
       return null;
     }
@@ -170,8 +211,9 @@ export function HotelProvider({ children }) {
   const loadLiveInventory = useCallback(async () => {
     if (!isSupabaseConfigured) return;
     try {
-      const [hotelsRes, roomsRes, resRes] = await Promise.all([
+      const [hotelsRes, roomTypesRes, roomsRes, resRes] = await Promise.all([
         supabase.from('hotels').select('id, status').order('created_at', { ascending: false }),
+        supabase.from('room_types').select('*').order('created_at', { ascending: true }),
         supabase.from('rooms').select('*').order('room_number'),
         supabase.from('reservations').select('*').order('created_at', { ascending: false })
       ]);
@@ -182,6 +224,7 @@ export function HotelProvider({ children }) {
         setActiveHotelId(activeHotel.id);
       }
 
+      const roomTypesData = Array.isArray(roomTypesRes?.data) ? roomTypesRes.data : [];
       const roomsData = Array.isArray(roomsRes?.data) ? roomsRes.data : null;
       const resData = Array.isArray(resRes?.data) ? resRes.data : [];
 
@@ -193,7 +236,7 @@ export function HotelProvider({ children }) {
           email: r.guest_email || '',
           phone: r.guest_phone || '',
           roomNumber: r.room_number || (String(r.room || '').match(/\b(\d+)\b/)?.[1] || ''),
-          roomCategory: r.room || 'Room',
+          roomCategory: formatRoomTypeName(r.room_type || r.room || 'Standard Room'),
           checkIn: r.check_in,
           checkOut: r.check_out,
           estimatedTariff: Number(r.amount) || 0,
@@ -210,17 +253,27 @@ export function HotelProvider({ children }) {
           setRooms([]);
         } else {
           const todayStr = new Date().toISOString().split('T')[0];
-          const mappedRooms = roomsData.map((r, idx) => {
-            const matchingInitial = INITIAL_ROOMS.find(ir =>
-              ir.title?.toLowerCase().includes((r.type || '').toLowerCase()) ||
-              ir.category?.toLowerCase().includes((r.type || '').toLowerCase())
-            ) || INITIAL_ROOMS[idx % INITIAL_ROOMS.length];
 
-            const roomNum = String(r.room_number || '');
+          // Group physical rooms by their normalized Room Type / Category so we show 1 card per Room Type
+          const categoryGroups = new Map();
+
+          roomsData.forEach((r) => {
+            const rawType = r.type || r.category || 'Standard Room';
+            const matchedRoomType = roomTypesData.find(rt =>
+              (r.room_type_id && rt.id === r.room_type_id) ||
+              String(rt.name || '').trim().toLowerCase() === String(rawType).trim().toLowerCase() ||
+              formatRoomTypeName(rt.name, rt.label).toLowerCase() === formatRoomTypeName(rawType).toLowerCase()
+            );
+
+            const canonicalTitle = formatRoomTypeName(matchedRoomType?.name || rawType, matchedRoomType?.label || 'Room');
+            const groupKey = canonicalTitle.toLowerCase();
+
+            const roomNum = String(r.room_number || '').trim();
             const activeResToday = (resData || []).find(res => {
               if (res.status === 'CANCELLED' || res.status === 'CHECKED_OUT') return false;
               const resRoom = String(res.room_number || res.room || '');
-              const matches = resRoom === roomNum || resRoom.includes('Room ' + roomNum) || resRoom.includes(roomNum);
+              const matchNum = resRoom.match(/\b(\d+)\b/)?.[1] || '';
+              const matches = (matchNum && matchNum === roomNum) || resRoom === roomNum || resRoom.includes('Room ' + roomNum);
               if (!matches) return false;
               const cIn = res.check_in || res.checkIn;
               const cOut = res.check_out || res.checkOut;
@@ -228,32 +281,89 @@ export function HotelProvider({ children }) {
             });
 
             const isOccupied = r.status === 'OCCUPIED' || !!activeResToday;
-            const isMaintenance = r.status === 'MAINTENANCE';
-            const roomTitle = r.room_number ? `Room ${r.room_number} - ${r.type || 'Standard Room'}` : (r.type || 'Standard Room');
+            const isMaintenance = r.status === 'MAINTENANCE' || r.status === 'OUT_OF_ORDER' || r.status === 'BLOCKED';
+            const isAvailable = !isOccupied && !isMaintenance;
+
+            if (!categoryGroups.has(groupKey)) {
+              categoryGroups.set(groupKey, {
+                canonicalTitle,
+                rawCategory: matchedRoomType?.name || rawType,
+                matchedRoomType,
+                hotelId: r.hotel_id || activeHotel?.id || null,
+                physicalRooms: []
+              });
+            }
+
+            categoryGroups.get(groupKey).physicalRooms.push({
+              ...r,
+              roomNum,
+              isOccupied,
+              isMaintenance,
+              isAvailable,
+              activeGuest: activeResToday?.guest || r.guest || null,
+              bookedUntil: activeResToday?.check_out || r.check_out || null
+            });
+          });
+
+          const groupedCards = Array.from(categoryGroups.values()).map((group, idx) => {
+            const { canonicalTitle, matchedRoomType, hotelId, physicalRooms } = group;
+            const firstRoom = physicalRooms[0] || {};
+            const totalRooms = physicalRooms.length;
+            const availableCount = physicalRooms.filter(rm => rm.isAvailable).length;
+            const occupiedCount = physicalRooms.filter(rm => rm.isOccupied).length;
+            const isCategoryAvailable = availableCount > 0;
+
+            const matchingInitial = INITIAL_ROOMS.find(ir =>
+              ir.title?.toLowerCase().includes(canonicalTitle.toLowerCase()) ||
+              canonicalTitle.toLowerCase().includes((ir.category || '').toLowerCase())
+            ) || INITIAL_ROOMS[idx % INITIAL_ROOMS.length];
+
+            const maxAdults = Number(matchedRoomType?.max_adults) || 0;
+            const capacityText = maxAdults > 0
+              ? `Up to ${maxAdults} Guests`
+              : (matchingInitial?.capacity || 'Up to 3 Guests');
+
+            const areaSqft = Number(matchedRoomType?.area_sqft) || 0;
+            const sizeText = areaSqft > 0
+              ? `${areaSqft} sq.ft`
+              : (matchingInitial?.size || '320 sq.ft');
+
+            const bedText = matchedRoomType?.bedding_type || firstRoom.bed || matchingInitial?.bed || '1 King Bed';
+            const pricePerNight = Number(firstRoom.price) || Number(matchedRoomType?.base_price) || matchingInitial?.pricePerNight || 2000;
+
+            const customDesc = matchedRoomType?.description?.trim();
+            const shortDesc = customDesc || matchingInitial?.shortDesc || `Comfortable ${canonicalTitle} featuring modern conveniences, tranquil surroundings, and high-speed Wi-Fi.`;
+            const fullDesc = customDesc || matchingInitial?.fullDesc || shortDesc;
+
+            const customAmenities = Array.isArray(matchedRoomType?.amenities) && matchedRoomType.amenities.length > 0
+              ? matchedRoomType.amenities
+              : null;
 
             return {
-              id: String(r.id || r.room_number),
-              hotelId: r.hotel_id || activeHotel?.id || null,
-              roomNumber: r.room_number,
-              title: roomTitle,
-              category: r.type || 'Standard Room',
-              shortDesc: matchingInitial?.shortDesc || `Refined ${r.type} located on ${r.floor || 'Floor 1'}. Features modern conveniences, quiet surroundings, and high-speed Wi-Fi.`,
-              fullDesc: matchingInitial?.fullDesc || matchingInitial?.shortDesc,
-              size: matchingInitial?.size || '320 sq.ft',
-              bed: r.bed || matchingInitial?.bed || '1 King Bed',
-              floor: r.floor,
-              capacity: matchingInitial?.capacity || 'Up to 3 Guests',
-              pricePerNight: Number(r.price) || matchingInitial?.pricePerNight || 2000,
-              badge: isOccupied ? 'Reserved' : isMaintenance ? 'Maintenance' : (matchingInitial?.badge || 'Available'),
-              status: isOccupied ? 'OCCUPIED' : r.status,
-              isAvailable: !isOccupied && !isMaintenance,
-              activeGuest: activeResToday?.guest || r.guest || null,
-              bookedUntil: activeResToday?.check_out || r.check_out || null,
+              id: `cat-${canonicalTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+              hotelId,
+              title: canonicalTitle,
+              category: canonicalTitle,
+              totalRooms,
+              availableCount,
+              occupiedCount,
+              roomNumbers: physicalRooms.map(rm => rm.roomNum),
+              availableRoomNumbers: physicalRooms.filter(rm => rm.isAvailable).map(rm => rm.roomNum),
+              shortDesc,
+              fullDesc,
+              size: sizeText,
+              bed: bedText,
+              capacity: capacityText,
+              pricePerNight,
+              badge: isCategoryAvailable ? `${availableCount} Available` : 'Sold Out',
+              status: isCategoryAvailable ? 'VACANT_READY' : 'OCCUPIED',
+              isAvailable: isCategoryAvailable,
+              bookedUntil: !isCategoryAvailable ? (physicalRooms.find(rm => rm.bookedUntil)?.bookedUntil || null) : null,
               image: matchingInitial?.image || 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1000&q=80',
               gallery: matchingInitial?.gallery || [
                 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1000&q=80'
               ],
-              amenities: matchingInitial?.amenities || [
+              amenities: customAmenities || matchingInitial?.amenities || [
                 'High-speed Optic Fiber Wi-Fi',
                 'Individual Split Air Conditioning',
                 '43-inch 4K Smart TV',
@@ -262,7 +372,8 @@ export function HotelProvider({ children }) {
               ]
             };
           });
-          setRooms(mappedRooms);
+
+          setRooms(groupedCards);
         }
       }
     } catch (err) {
@@ -283,6 +394,7 @@ export function HotelProvider({ children }) {
 
     const channel = supabase.channel('shivanandi_vista_realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'rooms' }, () => loadLiveInventory())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'room_types' }, () => loadLiveInventory())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, () => loadLiveInventory())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'hotels' }, () => loadLiveInventory())
       .subscribe();
@@ -302,50 +414,64 @@ export function HotelProvider({ children }) {
   // =========================================================================
   const addBookingEnquiry = async (data) => {
     const bookingId = `AST-B-${Math.floor(1000 + Math.random() * 9000)}`;
-    const todayStr = new Date().toISOString().split('T')[0];
+    const requestedCategory = formatRoomTypeName(data.roomCategory || 'Standard Room');
 
-    // 1. Identify which room instance is being booked
+    // 1. Find an available physical room in the selected category from dbRooms
     let targetRoomNum = data.roomNumber;
-    if (!targetRoomNum) {
-      const match = String(data.roomCategory || '').match(/\b(\d+)\b/);
-      if (match) targetRoomNum = match[1];
-    }
+    const roomPool = dbRooms || [];
 
-    // If no room number yet, find candidate room from dbRooms / rooms
     if (!targetRoomNum) {
-      const roomPool = (dbRooms && dbRooms.length > 0 ? dbRooms : rooms) || [];
       const catRooms = roomPool.filter(r => {
-        const typeStr = (r.type || r.category || '').toLowerCase();
-        const catStr = String(data.roomCategory || '').toLowerCase();
-        return typeStr.includes(catStr) || catStr.includes(typeStr);
+        const rCat = formatRoomTypeName(r.type || r.category || 'Standard Room').toLowerCase();
+        const reqCat = requestedCategory.toLowerCase();
+        return rCat === reqCat || rCat.includes(reqCat) || reqCat.includes(rCat);
       });
       const searchPool = catRooms.length > 0 ? catRooms : roomPool;
 
-      // Find free room without overlapping reservation
+      // Prefer a room that is currently not OCCUPIED/MAINTENANCE and has no overlapping reservation
       const freeRoom = searchPool.find(r => {
-        const rNum = String(r.room_number || r.roomNumber || r.id);
+        const isMaint = r.status === 'MAINTENANCE' || r.status === 'OUT_OF_ORDER' || r.status === 'BLOCKED';
+        if (isMaint) return false;
+        const rNum = String(r.room_number || r.roomNumber || r.id).trim();
         const hasOverlap = (reservations || []).some(res => {
           if (res.status === 'CANCELLED' || res.status === 'CHECKED_OUT') return false;
           const resRoom = String(res.room_number || res.room || '');
-          if (!resRoom.includes(rNum)) return false;
+          const match = resRoom.match(/\b(\d+)\b/);
+          const matchesThisRoom = (match && match[1] === rNum) || resRoom === rNum || resRoom.includes('Room ' + rNum);
+          if (!matchesThisRoom) return false;
+          return (new Date(data.checkIn) < new Date(res.check_out || res.checkOut) && new Date(data.checkOut) > new Date(res.check_in || res.checkIn));
+        });
+        if (hasOverlap) return false;
+        if (r.status === 'OCCUPIED') return false;
+        return true;
+      }) || searchPool.find(r => {
+        const rNum = String(r.room_number || r.roomNumber || r.id).trim();
+        const hasOverlap = (reservations || []).some(res => {
+          if (res.status === 'CANCELLED' || res.status === 'CHECKED_OUT') return false;
+          const resRoom = String(res.room_number || res.room || '');
+          const match = resRoom.match(/\b(\d+)\b/);
+          const matchesThisRoom = (match && match[1] === rNum) || resRoom === rNum || resRoom.includes('Room ' + rNum);
+          if (!matchesThisRoom) return false;
           return (new Date(data.checkIn) < new Date(res.check_out || res.checkOut) && new Date(data.checkOut) > new Date(res.check_in || res.checkIn));
         });
         return !hasOverlap;
       });
 
-      targetRoomNum = freeRoom ? (freeRoom.room_number || freeRoom.roomNumber) : (searchPool[0]?.room_number || searchPool[0]?.roomNumber || '101');
+      targetRoomNum = freeRoom
+        ? String(freeRoom.room_number || freeRoom.roomNumber)
+        : String(searchPool[0]?.room_number || searchPool[0]?.roomNumber || '101');
     }
 
-    const roomPool = (dbRooms && dbRooms.length > 0 ? dbRooms : rooms) || [];
     const assignedRoom = roomPool.find(r => String(r.room_number || r.roomNumber) === String(targetRoomNum));
-    const roomType = assignedRoom?.type || assignedRoom?.category || data.roomCategory || 'Standard Room';
-    const roomDisplayName = `Room ${targetRoomNum} - ${roomType}`;
+    const cleanCategoryName = formatRoomTypeName(assignedRoom?.type || assignedRoom?.category || requestedCategory);
+    // Internal identifier stored in Supabase reservations so Admin PMS knows which physical room number is locked
+    const internalAdminRoomLabel = `Room ${targetRoomNum} - ${cleanCategoryName}`;
 
     const newEnq = {
       id: bookingId,
       ...data,
       roomNumber: targetRoomNum,
-      roomCategory: roomDisplayName,
+      roomCategory: cleanCategoryName,
       phone: data.phone || user?.phone || '',
       status: 'Confirmed',
       createdAt: new Date().toISOString().replace('T', ' ').slice(0, 16)
@@ -363,7 +489,7 @@ export function HotelProvider({ children }) {
           guest: data.fullName || user?.name || 'Verified Guest',
           guest_email: data.email || user?.email || null,
           guest_phone: data.phone || user?.phone || null,
-          room: roomDisplayName,
+          room: internalAdminRoomLabel,
           check_in: data.checkIn,
           check_out: data.checkOut,
           amount: Number(data.estimatedTariff) || 2000,
@@ -380,7 +506,8 @@ export function HotelProvider({ children }) {
           await supabase.from('reservations').insert(fallback);
         }
 
-        // Lock room in Supabase: mark OCCUPIED so Admin immediately reflects the room as Occupied
+        // Lock the assigned physical room in Supabase so Admin immediately reflects it as Occupied
+        // and the category available count decrements by 1
         await supabase.from('rooms').update({
           status: 'OCCUPIED',
           guest: data.fullName || user?.name || 'Verified Guest',
@@ -395,22 +522,29 @@ export function HotelProvider({ children }) {
           roomNumber: String(targetRoomNum)
         });
 
-        // Optimistically update local room state
-        setRooms(prev => prev.map(r => String(r.roomNumber || r.id) === String(targetRoomNum) ? {
-          ...r,
-          status: 'OCCUPIED',
-          isAvailable: false,
-          badge: 'Reserved',
-          activeGuest: data.fullName || user?.name || 'Verified Guest',
-          bookedUntil: data.checkOut
-        } : r));
+        // Optimistically decrement availableCount for this room category
+        setRooms(prev => prev.map(r => {
+          if (r.title.toLowerCase() === cleanCategoryName.toLowerCase()) {
+            const nextAvailable = Math.max(0, (r.availableCount ?? 1) - 1);
+            return {
+              ...r,
+              availableCount: nextAvailable,
+              occupiedCount: (r.occupiedCount || 0) + 1,
+              status: nextAvailable > 0 ? 'VACANT_READY' : 'OCCUPIED',
+              isAvailable: nextAvailable > 0,
+              badge: nextAvailable > 0 ? `${nextAvailable} Available` : 'Sold Out'
+            };
+          }
+          return r;
+        }));
 
+        await loadLiveInventory();
       } catch (err) {
         console.warn('Supabase booking sync error:', err);
       }
     }
 
-    showToast(`Reservation #${bookingId} confirmed! Room #${targetRoomNum} has been locked for your stay.`, 'success');
+    showToast(`Reservation #${bookingId} confirmed! Your ${cleanCategoryName} has been reserved for your stay.`, 'success');
     return newEnq;
   };
 
@@ -429,6 +563,12 @@ export function HotelProvider({ children }) {
   // Self-service guest reservation cancellation
   const cancelBooking = async (bookingId, roomIdentifier) => {
     try {
+      const matchingRes = (reservations || []).find(r => r.id === bookingId);
+      const matchingEnq = (bookingEnquiries || []).find(e => e.id === bookingId);
+      const matchingDbRoom = (dbRooms || []).find(rm => rm.booking_id === bookingId);
+      const rawRoomStr = matchingEnq?.roomNumber || matchingDbRoom?.room_number || matchingRes?.room_number || matchingRes?.room || roomIdentifier || '';
+      const rMatch = String(rawRoomStr).match(/\b(\d+)\b/);
+
       // 1. Update Supabase reservations table
       if (isSupabaseConfigured) {
         await supabase
@@ -436,8 +576,7 @@ export function HotelProvider({ children }) {
           .update({ status: 'CANCELLED' })
           .eq('id', bookingId);
 
-        // 2. Unlock and reset room in Supabase rooms table
-        const rMatch = String(roomIdentifier || '').match(/\b(\d+)\b/);
+        // 2. Unlock and reset the physical room in Supabase rooms table
         if (rMatch) {
           const rNum = rMatch[1];
           await supabase
@@ -457,23 +596,10 @@ export function HotelProvider({ children }) {
         });
       }
 
-      // 3. Update local state
+      // 3. Update local state & refresh inventory counts
       setReservations(prev => prev.map(r => r.id === bookingId ? { ...r, status: 'CANCELLED' } : r));
       setBookingEnquiries(prev => prev.map(enq => enq.id === bookingId ? { ...enq, status: 'Cancelled' } : enq));
-
-      // 4. Update rooms local state
-      const rMatch = String(roomIdentifier || '').match(/\b(\d+)\b/);
-      if (rMatch) {
-        const rNum = rMatch[1];
-        setRooms(prev => prev.map(rm => String(rm.roomNumber || rm.id) === rNum ? {
-          ...rm,
-          status: 'VACANT_READY',
-          isAvailable: true,
-          badge: 'Available',
-          activeGuest: null,
-          bookedUntil: null
-        } : rm));
-      }
+      await loadLiveInventory();
 
       showToast(`Booking #${bookingId} has been cancelled successfully. Your room has been released.`, 'success');
       return true;

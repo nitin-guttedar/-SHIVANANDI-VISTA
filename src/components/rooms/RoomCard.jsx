@@ -6,6 +6,11 @@ import { useHotel } from '../../context/HotelContext';
 export default function RoomCard({ room }) {
   const { openWhatsApp } = useHotel();
 
+  const availableCount = typeof room.availableCount === 'number'
+    ? room.availableCount
+    : (room.status === 'OCCUPIED' ? 0 : 1);
+  const isSoldOut = availableCount <= 0 || room.status === 'OCCUPIED';
+
   const handleWhatsAppEnquiry = () => {
     const text = `Hello SHIVANANDI VISTA, I am interested in reserving the "${room.title}" (₹${room.pricePerNight?.toLocaleString('en-IN')}/night). Could you please share availability and booking details?`;
     openWhatsApp(text);
@@ -13,7 +18,7 @@ export default function RoomCard({ room }) {
 
   return (
     <div className="minimal-card overflow-hidden flex flex-col group">
-      {/* Image with subtle badge */}
+      {/* Image with availability badge */}
       <div className="relative h-64 overflow-hidden bg-stone-100">
         <img
           src={room.image}
@@ -23,23 +28,16 @@ export default function RoomCard({ room }) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
 
-        {/* Badge */}
+        {/* Availability Badge */}
         <div className="absolute top-3 left-3 flex items-center gap-1.5">
-          {room.badge && (
-            <div className={`text-[11px] font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1 ${
-              room.status === 'OCCUPIED'
-                ? 'bg-rose-100 text-rose-800 border border-rose-300'
-                : 'bg-white/95 text-obsidian'
-            }`}>
-              <Sparkles className={`w-3 h-3 ${room.status === 'OCCUPIED' ? 'text-rose-600' : 'text-gold'}`} />
-              <span>{room.status === 'OCCUPIED' ? 'Reserved' : room.badge}</span>
-            </div>
-          )}
-          {room.floor && (
-            <span className="bg-black/60 backdrop-blur-xs text-white text-[10px] font-medium px-2 py-0.5 rounded-full">
-              {room.floor}
-            </span>
-          )}
+          <div className={`text-[11px] font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5 ${
+            isSoldOut
+              ? 'bg-rose-100 text-rose-800 border border-rose-300'
+              : 'bg-white/95 text-obsidian'
+          }`}>
+            <Sparkles className={`w-3 h-3 ${isSoldOut ? 'text-rose-600' : 'text-gold'}`} />
+            <span>{isSoldOut ? 'Sold Out' : `${availableCount} Available`}</span>
+          </div>
         </div>
 
         {/* Minimal Price tag */}
@@ -60,8 +58,13 @@ export default function RoomCard({ room }) {
             <h3 className="font-serif text-xl font-bold text-obsidian group-hover:text-gold transition-colors">
               {room.title}
             </h3>
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-stone-warm text-obsidian-700 border border-stone-200">
-              {room.category}
+            <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border shrink-0 flex items-center gap-1.5 ${
+              isSoldOut
+                ? 'bg-rose-50 text-rose-700 border-rose-200'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${isSoldOut ? 'bg-rose-500' : 'bg-emerald-500'}`} />
+              <span>{isSoldOut ? '0 Available' : `${availableCount} Available`}</span>
             </span>
           </div>
 
@@ -98,7 +101,7 @@ export default function RoomCard({ room }) {
 
         {/* Action Buttons */}
         <div className="pt-2 flex items-center gap-2">
-          {room.status === 'OCCUPIED' ? (
+          {isSoldOut ? (
             <button
               disabled
               className="flex-1 py-2.5 px-3 rounded-xl bg-stone-100 text-stone-500 border border-stone-200 text-xs font-bold flex items-center justify-center gap-1.5 cursor-not-allowed"

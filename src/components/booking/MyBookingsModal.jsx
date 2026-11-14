@@ -16,7 +16,7 @@ import {
   XCircle,
   AlertTriangle
 } from 'lucide-react';
-import { useHotel } from '../../context/HotelContext';
+import { useHotel, formatRoomTypeName } from '../../context/HotelContext';
 
 export default function MyBookingsModal({ isOpen, onClose }) {
   const { 
@@ -69,7 +69,8 @@ export default function MyBookingsModal({ isOpen, onClose }) {
       guest: r.guest || r.guest_name,
       phone: r.guest_phone || r.phone,
       email: r.guest_email || r.email,
-      room: r.room || r.room_category || 'Standard Room',
+      room: formatRoomTypeName(r.room_type || r.room || r.room_category || 'Standard Room'),
+      rawRoom: r.room_number || r.room || '',
       checkIn: r.check_in || r.checkIn,
       checkOut: r.check_out || r.checkOut,
       amount: r.amount || r.total_price || 2500,
@@ -84,7 +85,8 @@ export default function MyBookingsModal({ isOpen, onClose }) {
       guest: enq.fullName,
       phone: enq.phone,
       email: enq.email,
-      room: enq.roomCategory,
+      room: formatRoomTypeName(enq.roomCategory || 'Standard Room'),
+      rawRoom: enq.roomNumber || enq.roomCategory || '',
       checkIn: enq.checkIn,
       checkOut: enq.checkOut,
       amount: enq.estimatedTariff || 2500,
@@ -383,7 +385,7 @@ export default function MyBookingsModal({ isOpen, onClose }) {
                   onClick={async () => {
                     setIsCancelling(true);
                     const bObj = allBookings.find(b => b.id === cancellingBookingId);
-                    await cancelBooking(cancellingBookingId, bObj?.room);
+                    await cancelBooking(cancellingBookingId, bObj?.rawRoom || bObj?.room);
                     setIsCancelling(false);
                     setCancellingBookingId(null);
                   }}

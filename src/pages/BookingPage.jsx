@@ -17,7 +17,7 @@ import {
   Check
 } from 'lucide-react';
 import SEO from '../components/common/SEO';
-import { useHotel } from '../context/HotelContext';
+import { useHotel, formatRoomTypeName } from '../context/HotelContext';
 import { validateIndianMobile } from '../lib/phoneValidation';
 import { authenticateWithPhone } from '../lib/supabaseAuthService';
 
@@ -71,10 +71,16 @@ export default function BookingPage() {
   }, [user]);
 
   useEffect(() => {
-    if (paramRoom) setFormData(prev => ({ ...prev, roomCategory: paramRoom }));
+    if (paramRoom) setFormData(prev => ({ ...prev, roomCategory: formatRoomTypeName(paramRoom) }));
     if (paramCheckIn) setFormData(prev => ({ ...prev, checkIn: paramCheckIn }));
     if (paramCheckOut) setFormData(prev => ({ ...prev, checkOut: paramCheckOut }));
   }, [paramRoom, paramCheckIn, paramCheckOut]);
+
+  useEffect(() => {
+    if (!paramRoom && rooms.length > 0 && !rooms.some(r => r.title === formData.roomCategory)) {
+      setFormData(prev => ({ ...prev, roomCategory: rooms[0].title }));
+    }
+  }, [rooms, paramRoom, formData.roomCategory]);
 
   const calculateNights = () => {
     const d1 = new Date(formData.checkIn);
@@ -88,9 +94,9 @@ export default function BookingPage() {
   const totalNights = calculateNights();
   const estimatedTotal = (selectedRoomObj?.pricePerNight || 2000) * totalNights;
 
-  // Real-time Date Conflict Validation
+  // Real-time Date Conflict Validation across all rooms in the selected category
   const dateConflict = checkRoomConflict(
-    selectedRoomObj?.roomNumber || selectedRoomObj?.id || formData.roomCategory,
+    selectedRoomObj?.title || formData.roomCategory,
     formData.checkIn,
     formData.checkOut
   );
@@ -522,7 +528,9 @@ export default function BookingPage() {
                         className="w-full px-3.5 py-2.5 rounded-xl minimal-input text-xs sm:text-sm text-obsidian"
                       >
                         {rooms.map(r => (
-                          <option key={r.id} value={r.title}>{r.title}</option>
+                          <option key={r.id} value={r.title}>
+                            {r.title} ({typeof r.availableCount === 'number' ? `${r.availableCount} Available` : 'Available'})
+                          </option>
                         ))}
                       </select>
                     </div>
