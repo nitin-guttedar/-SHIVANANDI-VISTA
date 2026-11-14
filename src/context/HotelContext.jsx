@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   PROPERTY_INFO,
   INITIAL_ROOMS,
@@ -13,42 +13,55 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const HotelContext = createContext(null);
 
-export function HotelProvider({ children }) {
-  // Rooms state with initial fallback to verified hotel rooms
-  const [rooms, setRooms] = useState(() => {
-    try {
-      const saved = localStorage.getItem('sv_rooms');
-      if (saved) return JSON.parse(saved);
-    } catch (e) { }
-    return [];
-  });
+async function broadcastVistaSync(payload) {
+  if (!isSupabaseConfigured || !supabase) return;
+  try {
+    const channel = supabase.channel('aurastay_sync_broadcast');
+    await channel.send({
+      type: 'broadcast',
+      event: 'webhook_update',
+      payload: {
+        ...payload,
+        timestamp: new Date().toISOString()
+      }
+    });
+    supabase.removeChannel(channel);
+  } catch (e) { }
+}
 
-  // Live Supabase database rooms and reservations
+export function HotelProvider({ children }) {
+  // Rooms state driven strictly by Supabase Backend (no localStorage caching)
+  const [rooms, setRooms] = useState([]);
+
+  // Live Supabase database rooms, reservations, and active hotel tenant ID
   const [dbRooms, setDbRooms] = useState([]);
   const [reservations, setReservations] = useState([]);
+  const [activeHotelId, setActiveHotelId] = useState(null);
   const [isLiveSynced, setIsLiveSynced] = useState(false);
 
   // Blog posts state
-  const [blogPosts, setBlogPosts] = useState(() => {
-    const saved = localStorage.getItem('sv_blogs_v5');
-    return saved ? JSON.parse(saved) : INITIAL_BLOG_POSTS;
-  });
+  const [blogPosts, setBlogPosts] = useState(INITIAL_BLOG_POSTS);
 
-  // Booking enquiries
-  const [bookingEnquiries, setBookingEnquiries] = useState(() => {
-    try {
-      const saved = localStorage.getItem('sv_booking_enquiries');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return [];
-  });
+  // Booking enquiries (synced from Supabase reservations)
+  const [bookingEnquiries, setBookingEnquiries] = useState([]);
 
   // Contact enquiries
-  const [contactEnquiries, setContactEnquiries] = useState(() => {
-    const saved = localStorage.getItem('sv_contact_enquiries');
-    if (saved) return JSON.parse(saved);
-    return [];
-  });
+  const [contactEnquiries, setContactEnquiries] = useState([]);
+
+  // Clean up legacy localStorage keys on mount
+  useEffect(() => {
+    const legacyKeys = [
+      'sv_rooms',
+      'sv_rooms_v5',
+      'sv_blogs_v5',
+      'sv_booking_enquiries',
+      'sv_contact_enquiries',
+      'sv_saved_users'
+    ];
+    legacyKeys.forEach(k => {
+      try { localStorage.removeItem(k); } catch (e) { }
+    });
+  }, []);
 
   // Admin auth state
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
@@ -151,56 +164,51 @@ export function HotelProvider({ children }) {
     return null;
   };
 
-  // Sync state to local storage
-  useEffect(() => {
-    localStorage.setItem('sv_rooms_v5', JSON.stringify(rooms));
-  }, [rooms]);
-
-  useEffect(() => {
-    localStorage.setItem('sv_blogs_v5', JSON.stringify(blogPosts));
-  }, [blogPosts]);
-
-  useEffect(() => {
-    localStorage.setItem('sv_booking_enquiries', JSON.stringify(bookingEnquiries));
-  }, [bookingEnquiries]);
-
-  useEffect(() => {
-    localStorage.setItem('sv_contact_enquiries', JSON.stringify(contactEnquiries));
-  }, [contactEnquiries]);
-
   // =========================================================================
   // LIVE SUPABASE INVENTORY & REALTIME SUBSCRIPTION
   // =========================================================================
-  useEffect(() => {
+  const loadLiveInventory = useCallback(async () => {
     if (!isSupabaseConfigured) return;
-    let isMounted = true;
+    try {
+      const [hotelsRes, roomsRes, resRes] = await Promise.all([
+        supabase.from('hotels').select('id, status').order('created_at', { ascending: false }),
+        supabase.from('rooms').select('*').order('room_number'),
+        supabase.from('reservations').select('*').order('created_at', { ascending: false })
+      ]);
 
-    async function loadLiveInventory() {
-      try {
-        // 1. Fetch live rooms from Supabase
-        const { data: roomsData, error: roomsErr } = await supabase
-          .from('rooms')
-          .select('*')
-          .order('room_number');
+      const hotelsData = Array.isArray(hotelsRes?.data) ? hotelsRes.data : [];
+      const activeHotel = hotelsData.find(h => h.status === 'ACTIVE') || hotelsData[0];
+      if (activeHotel?.id) {
+        setActiveHotelId(activeHotel.id);
+      }
 
-        // 2. Fetch live reservations from Supabase
-        const { data: resData, error: resErr } = await supabase
-          .from('reservations')
-          .select('*')
-          .order('created_at', { ascending: false });
+      const roomsData = Array.isArray(roomsRes?.data) ? roomsRes.data : null;
+      const resData = Array.isArray(resRes?.data) ? resRes.data : [];
 
-        if (!roomsErr && roomsData && isMounted) {
-          setDbRooms(roomsData);
-          setIsLiveSynced(true);
+      if (!resRes?.error && Array.isArray(resRes?.data)) {
+        setReservations(resData);
+        setBookingEnquiries(resData.map(r => ({
+          id: r.id,
+          fullName: r.guest || 'Guest',
+          email: r.guest_email || '',
+          phone: r.guest_phone || '',
+          roomNumber: r.room_number || (String(r.room || '').match(/\b(\d+)\b/)?.[1] || ''),
+          roomCategory: r.room || 'Room',
+          checkIn: r.check_in,
+          checkOut: r.check_out,
+          estimatedTariff: Number(r.amount) || 0,
+          status: r.status === 'CANCELLED' ? 'Cancelled' : 'Confirmed',
+          createdAt: (r.created_at || '').replace('T', ' ').slice(0, 16)
+        })));
+      }
 
-          if (roomsData.length === 0) {
-            setRooms([]);
-            try { localStorage.removeItem("sv_rooms"); } catch(e){}
-          } else {
-          setDbRooms(roomsData);
-          setIsLiveSynced(true);
+      if (!roomsRes?.error && roomsData !== null) {
+        setDbRooms(roomsData);
+        setIsLiveSynced(true);
 
-          // Map Supabase rooms to Shivanandi Vista room card format
+        if (roomsData.length === 0) {
+          setRooms([]);
+        } else {
           const todayStr = new Date().toISOString().split('T')[0];
           const mappedRooms = roomsData.map((r, idx) => {
             const matchingInitial = INITIAL_ROOMS.find(ir =>
@@ -209,7 +217,6 @@ export function HotelProvider({ children }) {
             ) || INITIAL_ROOMS[idx % INITIAL_ROOMS.length];
 
             const roomNum = String(r.room_number || '');
-            // Check if there is an active reservation covering today for this room
             const activeResToday = (resData || []).find(res => {
               if (res.status === 'CANCELLED' || res.status === 'CHECKED_OUT') return false;
               const resRoom = String(res.room_number || res.room || '');
@@ -226,6 +233,7 @@ export function HotelProvider({ children }) {
 
             return {
               id: String(r.id || r.room_number),
+              hotelId: r.hotel_id || activeHotel?.id || null,
               roomNumber: r.room_number,
               title: roomTitle,
               category: r.type || 'Standard Room',
@@ -255,30 +263,39 @@ export function HotelProvider({ children }) {
             };
           });
           setRooms(mappedRooms);
-          }
         }
-
-        if (!resErr && resData && isMounted) {
-          setReservations(resData);
-        }
-      } catch (err) {
-        console.warn('Supabase live inventory sync warning:', err);
       }
+    } catch (err) {
+      console.warn('Supabase live inventory sync warning:', err);
     }
+  }, []);
 
+  useEffect(() => {
     loadLiveInventory();
+    const pollTimer = setInterval(() => {
+      loadLiveInventory();
+    }, 4000);
+    return () => clearInterval(pollTimer);
+  }, [loadLiveInventory]);
 
-    // Setup Supabase Realtime channel for instant synchronization
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
     const channel = supabase.channel('shivanandi_vista_realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'rooms' }, () => loadLiveInventory())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, () => loadLiveInventory())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'hotels' }, () => loadLiveInventory())
+      .subscribe();
+
+    const broadcastChannel = supabase.channel('aurastay_sync_broadcast')
+      .on('broadcast', { event: 'webhook_update' }, () => loadLiveInventory())
       .subscribe();
 
     return () => {
-      isMounted = false;
       supabase.removeChannel(channel);
+      supabase.removeChannel(broadcastChannel);
     };
-  }, []);
+  }, [loadLiveInventory]);
 
   // =========================================================================
   // LIVE BOOKING ENQUIRY & SUPABASE RESERVATION CREATION
@@ -339,9 +356,10 @@ export function HotelProvider({ children }) {
     // Live insertion into Supabase reservations table
     if (isSupabaseConfigured) {
       try {
+        const resolvedHotelId = assignedRoom?.hotel_id || assignedRoom?.hotelId || activeHotelId || null;
         const safePayload = {
           id: bookingId,
-          hotel_id: 'hotel_aurastay_01',
+          ...(resolvedHotelId ? { hotel_id: resolvedHotelId } : {}),
           guest: data.fullName || user?.name || 'Verified Guest',
           guest_email: data.email || user?.email || null,
           guest_phone: data.phone || user?.phone || null,
@@ -369,6 +387,13 @@ export function HotelProvider({ children }) {
           booking_id: bookingId,
           check_out: data.checkOut
         }).eq('room_number', String(targetRoomNum));
+
+        await broadcastVistaSync({
+          action: 'book',
+          bookingId,
+          guestName: data.fullName || user?.name || 'Verified Guest',
+          roomNumber: String(targetRoomNum)
+        });
 
         // Optimistically update local room state
         setRooms(prev => prev.map(r => String(r.roomNumber || r.id) === String(targetRoomNum) ? {
@@ -425,6 +450,11 @@ export function HotelProvider({ children }) {
             })
             .eq('room_number', rNum);
         }
+
+        await broadcastVistaSync({
+          action: 'cancel',
+          bookingId
+        });
       }
 
       // 3. Update local state
@@ -483,14 +513,22 @@ export function HotelProvider({ children }) {
     showToast('Article deleted.');
   };
 
-  const loginAdmin = (password) => {
-    if (password === 'vista2026' || password === 'admin123') {
-      setIsAdminLoggedIn(true);
-      localStorage.setItem('sv_admin_auth', 'true');
-      showToast('Welcome to SHIVANANDI VISTA Admin Panel.', 'success');
-      return true;
+  const loginAdmin = async (password) => {
+    if (!password || !isSupabaseConfigured) {
+      showToast('Invalid administrative password.', 'error');
+      return false;
     }
-    showToast('Invalid administrative password.', 'error');
+    try {
+      const { data: hotelsData } = await supabase.from('hotels').select('*');
+      const matched = (hotelsData || []).find(h => h.password === password.trim() && (h.status || 'ACTIVE') === 'ACTIVE');
+      if (matched) {
+        setIsAdminLoggedIn(true);
+        localStorage.setItem('sv_admin_auth', 'true');
+        showToast(`Welcome to ${matched.name} Admin Panel.`, 'success');
+        return true;
+      }
+    } catch (e) { }
+    showToast('Invalid administrative password. Use the password created by SuperAdmin.', 'error');
     return false;
   };
 

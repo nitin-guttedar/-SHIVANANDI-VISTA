@@ -8,12 +8,7 @@ import { supabase, isSupabaseConfigured } from './supabase';
 // Lookup guest by 10-digit mobile number in Supabase
 export async function lookupGuestByPhone(phoneNumber) {
   const cleanPhone = String(phoneNumber).replace(/\D/g, '').slice(-10);
-  if (!cleanPhone || cleanPhone.length !== 10) return null;
-
-  if (!isSupabaseConfigured) {
-    const local = JSON.parse(localStorage.getItem('sv_saved_users') || '{}');
-    return local[cleanPhone] || null;
-  }
+  if (!cleanPhone || cleanPhone.length !== 10 || !isSupabaseConfigured) return null;
 
   try {
     const { data, error } = await supabase
@@ -24,8 +19,7 @@ export async function lookupGuestByPhone(phoneNumber) {
 
     if (error) {
       console.warn('Supabase guest lookup warning:', error);
-      const local = JSON.parse(localStorage.getItem('sv_saved_users') || '{}');
-      return local[cleanPhone] || null;
+      return null;
     }
 
     return data;
@@ -79,13 +73,6 @@ export async function authenticateWithPhone({ phone, name, email = '', password 
       console.warn('Supabase auth error:', err);
     }
   }
-
-  // Sync to localStorage
-  try {
-    const localUsers = JSON.parse(localStorage.getItem('sv_saved_users') || '{}');
-    localUsers[cleanPhone] = userProfile;
-    localStorage.setItem('sv_saved_users', JSON.stringify(localUsers));
-  } catch (e) {}
 
   return userProfile;
 }
