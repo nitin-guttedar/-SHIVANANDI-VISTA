@@ -249,7 +249,18 @@ export function HotelProvider({ children }) {
               String(h.email || '').toLowerCase() !== 'admin@aurastay.com'
           )
         : [];
-      const activeHotel = hotelsData.find(h => h.status === 'ACTIVE') || hotelsData[0];
+      const urlHotelSlug =
+        typeof window !== 'undefined'
+          ? new URLSearchParams(window.location.search).get('hotel')?.trim().toLowerCase()
+          : '';
+      const activeHotel =
+        (urlHotelSlug
+          ? hotelsData.find(h => String(h.slug || h.id || '').trim().toLowerCase() === urlHotelSlug)
+          : null) ||
+        hotelsData.find(h => h.status === 'ACTIVE') ||
+        hotelsData[0];
+
+      const scopedHotelId = activeHotel?.id || null;
       if (activeHotel?.id) {
         setActiveHotelId(activeHotel.id);
         setPropertyInfo(prev => ({
@@ -262,9 +273,18 @@ export function HotelProvider({ children }) {
         }));
       }
 
-      const roomTypesData = Array.isArray(roomTypesRes?.data) ? roomTypesRes.data : [];
-      const roomsData = Array.isArray(roomsRes?.data) ? roomsRes.data : null;
-      const resData = Array.isArray(resRes?.data) ? resRes.data : [];
+      const rawRoomTypesData = Array.isArray(roomTypesRes?.data) ? roomTypesRes.data : [];
+      const rawRoomsData = Array.isArray(roomsRes?.data) ? roomsRes.data : null;
+      const rawResData = Array.isArray(resRes?.data) ? resRes.data : [];
+
+      const belongsToHotel = (recHotelId) => {
+        if (!scopedHotelId) return true;
+        return String(recHotelId || '').trim().toLowerCase() === String(scopedHotelId).trim().toLowerCase();
+      };
+
+      const roomTypesData = rawRoomTypesData.filter(rt => belongsToHotel(rt.hotel_id));
+      const roomsData = rawRoomsData !== null ? rawRoomsData.filter(rm => belongsToHotel(rm.hotel_id)) : null;
+      const resData = rawResData.filter(rs => belongsToHotel(rs.hotel_id));
 
       if (!resRes?.error && Array.isArray(resRes?.data)) {
         setReservations(resData);
@@ -544,14 +564,17 @@ export function HotelProvider({ children }) {
           await supabase.from('reservations').insert(fallback);
         }
 
-        // Lock the assigned physical room in Supabase so Admin immediately reflects it as Occupied
-        // and the category available count decrements by 1
-        await supabase.from('rooms').update({
+        // Lock the assigned physical room in Supabase scoped by hotel_id
+        let lockRoomQuery = supabase.from('rooms').update({
           status: 'OCCUPIED',
           guest: data.fullName || user?.name || 'Verified Guest',
           booking_id: bookingId,
           check_out: data.checkOut
         }).eq('room_number', String(targetRoomNum));
+        if (resolvedHotelId) {
+          lockRoomQuery = lockRoomQuery.eq('hotel_id', resolvedHotelId);
+        }
+        await lockRoomQuery;
 
         await broadcastVistaSync({
           action: 'book',
@@ -614,10 +637,11 @@ export function HotelProvider({ children }) {
           .update({ status: 'CANCELLED' })
           .eq('id', bookingId);
 
-        // 2. Unlock and reset the physical room in Supabase rooms table
+        // 2. Unlock and reset the physical room in Supabase rooms table scoped by hotel_id
         if (rMatch) {
           const rNum = rMatch[1];
-          await supabase
+          const cancelHotelId = matchingRes?.hotel_id || matchingDbRoom?.hotel_id || activeHotelId;
+          let unlockRoomQuery = supabase
             .from('rooms')
             .update({
               status: 'VACANT_READY',
@@ -626,6 +650,10 @@ export function HotelProvider({ children }) {
               check_out: null
             })
             .eq('room_number', rNum);
+          if (cancelHotelId) {
+            unlockRoomQuery = unlockRoomQuery.eq('hotel_id', cancelHotelId);
+          }
+          await unlockRoomQuery;
         }
 
         await broadcastVistaSync({
