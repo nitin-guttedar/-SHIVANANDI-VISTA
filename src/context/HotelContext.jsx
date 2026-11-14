@@ -96,12 +96,19 @@ export function HotelProvider({ children }) {
     });
   }, []);
 
-  // Admin auth state
+  // Property Info state (synced dynamically from SuperAdmin 'hotels' table in Supabase)
+  const [propertyInfo, setPropertyInfo] = useState(PROPERTY_INFO);
+
+  // Admin auth state (Persisted across page refreshes until explicit logout)
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
-    return localStorage.getItem('sv_admin_auth') === 'true';
+    try {
+      return localStorage.getItem('sv_admin_auth') === 'true';
+    } catch (e) {
+      return false;
+    }
   });
 
-  // User auth state (Phone OTP / Express Guest)
+  // User auth state (Persisted across page refreshes until explicit logout)
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('sv_user_session');
@@ -109,6 +116,23 @@ export function HotelProvider({ children }) {
     } catch (e) {}
     return null;
   });
+
+  // Keep user and admin sessions persisted in localStorage across refreshes
+  useEffect(() => {
+    try {
+      if (user) {
+        localStorage.setItem('sv_user_session', JSON.stringify(user));
+      }
+    } catch (e) {}
+  }, [user]);
+
+  useEffect(() => {
+    try {
+      if (isAdminLoggedIn) {
+        localStorage.setItem('sv_admin_auth', 'true');
+      }
+    } catch (e) {}
+  }, [isAdminLoggedIn]);
 
   // Modal open states
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -212,16 +236,30 @@ export function HotelProvider({ children }) {
     if (!isSupabaseConfigured) return;
     try {
       const [hotelsRes, roomTypesRes, roomsRes, resRes] = await Promise.all([
-        supabase.from('hotels').select('id, status').order('created_at', { ascending: false }),
+        supabase.from('hotels').select('*').order('created_at', { ascending: false }),
         supabase.from('room_types').select('*').order('created_at', { ascending: true }),
         supabase.from('rooms').select('*').order('room_number'),
         supabase.from('reservations').select('*').order('created_at', { ascending: false })
       ]);
 
-      const hotelsData = Array.isArray(hotelsRes?.data) ? hotelsRes.data : [];
+      const hotelsData = Array.isArray(hotelsRes?.data)
+        ? hotelsRes.data.filter(
+            h =>
+              String(h.id || '').toLowerCase() !== 'hotel_aurastay_01' &&
+              String(h.email || '').toLowerCase() !== 'admin@aurastay.com'
+          )
+        : [];
       const activeHotel = hotelsData.find(h => h.status === 'ACTIVE') || hotelsData[0];
       if (activeHotel?.id) {
         setActiveHotelId(activeHotel.id);
+        setPropertyInfo(prev => ({
+          ...prev,
+          name: activeHotel.name || prev.name,
+          phone: activeHotel.mobile || prev.phone,
+          email: activeHotel.email || prev.email,
+          address: activeHotel.address || prev.address,
+          city: activeHotel.city || prev.city
+        }));
       }
 
       const roomTypesData = Array.isArray(roomTypesRes?.data) ? roomTypesRes.data : [];
@@ -677,7 +715,7 @@ export function HotelProvider({ children }) {
   return (
     <HotelContext.Provider
       value={{
-        property: PROPERTY_INFO,
+        property: propertyInfo,
         rooms,
         dbRooms,
         reservations,
