@@ -26,6 +26,7 @@ export default function BookingPage() {
   const { 
     property, 
     rooms, 
+    getRoomsForDates,
     addBookingEnquiry, 
     openWhatsApp, 
     user, 
@@ -90,7 +91,9 @@ export default function BookingPage() {
     return diffDays > 0 ? diffDays : 1;
   };
 
-  const selectedRoomObj = rooms.find(r => r.title === formData.roomCategory) || rooms[0];
+  const dateScopedRooms = getRoomsForDates ? getRoomsForDates(formData.checkIn, formData.checkOut) : rooms;
+  const displayRooms = dateScopedRooms.length > 0 ? dateScopedRooms : rooms;
+  const selectedRoomObj = displayRooms.find(r => r.title === formData.roomCategory) || displayRooms[0];
   const totalNights = calculateNights();
   const estimatedTotal = (selectedRoomObj?.pricePerNight || 2000) * totalNights;
 
@@ -185,6 +188,7 @@ export default function BookingPage() {
       nights: totalNights,
       estimatedTariff: estimatedTotal
     });
+    if (!enquiry) return;
     setSubmittedEnquiry(enquiry);
   };
 
@@ -527,9 +531,9 @@ export default function BookingPage() {
                         onChange={handleChange}
                         className="w-full px-3.5 py-2.5 rounded-xl minimal-input text-xs sm:text-sm text-obsidian"
                       >
-                        {rooms.map(r => (
+                        {displayRooms.map(r => (
                           <option key={r.id} value={r.title}>
-                            {r.title} ({typeof r.availableCount === 'number' ? `${r.availableCount} Available` : 'Available'})
+                            {r.title} ({typeof r.availableCount === 'number' ? (r.availableCount > 0 ? `${r.availableCount} Available` : 'Sold Out for selected dates') : 'Available'})
                           </option>
                         ))}
                       </select>

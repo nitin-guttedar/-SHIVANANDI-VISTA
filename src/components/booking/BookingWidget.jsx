@@ -5,7 +5,7 @@ import { useHotel } from '../../context/HotelContext';
 
 export default function BookingWidget({ variant = 'horizontal' }) {
   const navigate = useNavigate();
-  const { rooms, openWhatsApp, user, setIsAuthModalOpen, showToast } = useHotel();
+  const { rooms, getRoomsForDates, openWhatsApp, user, setIsAuthModalOpen, showToast } = useHotel();
 
   const today = new Date().toISOString().split('T')[0];
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
@@ -13,13 +13,14 @@ export default function BookingWidget({ variant = 'horizontal' }) {
   const [checkIn, setCheckIn] = useState(today);
   const [checkOut, setCheckOut] = useState(tomorrow);
   const [adults, setAdults] = useState('2');
-  const [roomCategory, setRoomCategory] = useState(rooms[0]?.title || 'Standard Room');
+  const displayRooms = typeof getRoomsForDates === 'function' ? getRoomsForDates(checkIn, checkOut) : rooms;
+  const [roomCategory, setRoomCategory] = useState(displayRooms[0]?.title || 'Standard Room');
 
   useEffect(() => {
-    if (rooms.length > 0 && !rooms.some(r => r.title === roomCategory)) {
-      setRoomCategory(rooms[0].title);
+    if (displayRooms.length > 0 && !displayRooms.some(r => r.title === roomCategory)) {
+      setRoomCategory(displayRooms[0].title);
     }
-  }, [rooms, roomCategory]);
+  }, [displayRooms, roomCategory]);
 
   const handleProceed = (e) => {
     e.preventDefault();
@@ -104,7 +105,7 @@ export default function BookingWidget({ variant = 'horizontal' }) {
                 onChange={(e) => setRoomCategory(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl minimal-input text-xs font-medium text-obsidian"
               >
-                {rooms.map((r) => (
+                {displayRooms.map((r) => (
                   <option key={r.id} value={r.title}>
                     {r.title} ({typeof r.availableCount === 'number' ? `${r.availableCount} Available` : 'Available'})
                   </option>
@@ -199,7 +200,7 @@ export default function BookingWidget({ variant = 'horizontal' }) {
             onChange={(e) => setRoomCategory(e.target.value)}
             className="w-full px-3 py-2.5 rounded-xl minimal-input text-xs font-medium text-obsidian"
           >
-            {rooms.map((r) => (
+            {displayRooms.map((r) => (
               <option key={r.id} value={r.title}>
                 {r.title} ({typeof r.availableCount === 'number' ? `${r.availableCount} Available` : 'Available'})
               </option>
