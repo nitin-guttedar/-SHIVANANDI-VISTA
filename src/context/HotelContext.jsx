@@ -206,7 +206,8 @@ export function HotelProvider({ children }) {
     });
 
     if (matchingCategoryRooms.length > 0) {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const now = new Date();
+      const todayStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
       const freeRoom = matchingCategoryRooms.find(r => {
         const isMaint = r.status === 'MAINTENANCE' || r.status === 'OUT_OF_ORDER' || r.status === 'BLOCKED';
         if (isMaint) return false;
@@ -225,8 +226,8 @@ export function HotelProvider({ children }) {
         });
         if (hasResConflict) return false;
 
-        // If marked OCCUPIED in dbRooms directly without a matching reservation row
-        if (r.status === 'OCCUPIED') {
+        // If marked OCCUPIED or RESERVED in dbRooms directly without a matching reservation row
+        if (r.status === 'OCCUPIED' || r.status === 'RESERVED') {
           if (r.check_out) {
             const occOut = new Date(r.check_out).getTime();
             if (!isNaN(occOut) && newIn < occOut) return false;
@@ -264,8 +265,9 @@ export function HotelProvider({ children }) {
   const buildGroupedRoomsForDates = useCallback((rawRooms, rawRoomTypes, rawReservations, checkInDate = null, checkOutDate = null, hotelIdOverride = null) => {
     if (!Array.isArray(rawRooms) || rawRooms.length === 0) return [];
 
-    const todayStr = new Date().toISOString().split('T')[0];
-    const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    const now = new Date();
+    const todayStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    const tomorrowStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000 + 86400000).toISOString().split('T')[0];
     const winStart = String(checkInDate || todayStr).slice(0, 10);
     const winEnd = String(checkOutDate || tomorrowStr).slice(0, 10);
     const effectiveEnd = winEnd > winStart ? winEnd : tomorrowStr;
@@ -299,7 +301,7 @@ export function HotelProvider({ children }) {
 
       const isMaintenance = r.status === 'MAINTENANCE' || r.status === 'OUT_OF_ORDER' || r.status === 'BLOCKED';
       const isOccupiedDirectly =
-        r.status === 'OCCUPIED' &&
+        (r.status === 'OCCUPIED' || r.status === 'RESERVED') &&
         (r.check_out ? winStart < String(r.check_out).slice(0, 10) && effectiveEnd > todayStr : coversToday);
 
       const isOccupied = Boolean(overlappingRes) || isOccupiedDirectly;
@@ -522,7 +524,8 @@ export function HotelProvider({ children }) {
   const addBookingEnquiry = async (data) => {
     const bookingId = `AST-B-${Math.floor(1000 + Math.random() * 9000)}`;
     const requestedCategory = formatRoomTypeName(data.roomCategory || 'Standard Room');
-    const todayStr = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const todayStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().split('T')[0];
     const reqCheckIn = String(data.checkIn || todayStr).slice(0, 10);
     const reqCheckOut = String(data.checkOut || todayStr).slice(0, 10);
     const coversToday = reqCheckIn <= todayStr && reqCheckOut > todayStr;
@@ -571,7 +574,7 @@ export function HotelProvider({ children }) {
         return reqCheckIn < rOut && reqCheckOut > rIn;
       });
       if (hasOverlap) return false;
-      if (st === 'OCCUPIED') {
+      if (st === 'OCCUPIED' || st === 'RESERVED') {
         if (r.check_out) {
           return !(reqCheckIn < String(r.check_out).slice(0, 10) && reqCheckOut > todayStr);
         }
@@ -655,12 +658,12 @@ export function HotelProvider({ children }) {
           });
         }
 
-        // Only mark physical room OCCUPIED immediately when stay covers today; future bookings lock by date range
+        // Lock physical room as RESERVED immediately when stay covers today; transitions to OCCUPIED only when Admin checks guest in
         if (coversToday) {
           await supabase
             .from('rooms')
             .update({
-              status: 'OCCUPIED',
+              status: 'RESERVED',
               guest: safePayload.guest,
               booking_id: bookingId,
               check_out: reqCheckOut
