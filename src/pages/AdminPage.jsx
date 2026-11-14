@@ -134,7 +134,7 @@ export default function AdminPage() {
                   type="password"
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
-                  placeholder="Enter admin password (e.g. vista2026)"
+                  placeholder="Enter admin password provisioned by Super Admin"
                   className="w-full px-3.5 py-2.5 rounded-xl minimal-input text-xs sm:text-sm text-obsidian"
                   required
                 />
@@ -150,7 +150,7 @@ export default function AdminPage() {
             </form>
 
             <div className="pt-2 text-[11px] text-obsidian-500">
-              Default password: <code className="bg-stone-warm px-1.5 py-0.5 rounded font-mono text-gold-dark font-semibold">vista2026</code>
+              Use the Admin password created in <span className="font-semibold text-gold-dark">Aavasa Super Admin</span>
             </div>
           </div>
         </div>
